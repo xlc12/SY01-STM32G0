@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "*.c": "c",
+        "*.h": "c"
+    },
+    "files.encoding": "utf8",
+    "files.autoGuessEncoding": true,
+    // 强制CubeMX生成的文件用GBK打开
+    "files.encodingOverrides": [
+        {
+            "pattern": "**/Core/**/*.c",
+            "encoding": "gbk"
+        },
+        {
+            "pattern": "**/Core/**/*.h",
+            "encoding": "gbk"
+        }
+    ],
+    "idf.pythonInstallPath": "D:\\Espressif\\tools\\idf-python\\3.11.2\\python.exe"
+}

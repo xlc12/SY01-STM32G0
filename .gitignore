@@ -1,0 +1,59 @@
+# Keil MDK5 特定文件
+*.uvgui.*
+*.uvguix.*
+*.uvoptx
+*.crf
+*.tra
+*.dep
+*.d
+*.plg
+*.bak
+*.tmp
+*.map
+
+# 编译输出文件
+*.o
+*.obj
+*.elf
+*.axf
+*.hex
+*.bin
+*.d
+*.lst
+*.lnp
+*.sct
+
+# Debug 和 Release 文件夹
+Debug/
+Release/
+debug/
+release/
+Listings/
+MDK-ARM/
+
+# Keil 生成的临时文件
+*.plg
+*.opt
+*.htm
+*.lnp
+*.sct
+
+# 临时文件
+*~
+*.swp
+*.tmp
+*.bak
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+
+# Core和Drivers文件夹中的特定文件
+# 如果使用CubeMX，这些文件可能被重新生成
+# 但建议保留，所以不忽略
+
+# 重要的源文件和配置文件不应该被忽略
+# 如：.c, .h, .s, .ld, .ioc等文件
