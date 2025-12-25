@@ -40,6 +40,8 @@
 #include "my_adc.h"
 #include "Control.h"    //核心控制逻辑
 
+#include "app_user.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,6 +68,42 @@ extern uint8_t key_Release_Flag; //按键发送一次性标志位
 
 extern uint8_t Tim3_Count; //定时器3测试
 extern uint8_t PID_Start;//运行pid控制标志位
+
+
+
+/************************** 按键监测 应用层：按键事件回调函数 -· **************************/
+static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
+{  Serial_Printf("Key Key_Event_Callback\r\n");
+    switch (event)
+    {
+        case KEY_EVENT_SINGLE_CLICK:
+            // 单击业务逻辑（示例：LED翻转、串口打印
+            // HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+            //打印单击
+            Serial_Printf("Key Single Click\r\n");
+            break;
+
+        case KEY_EVENT_DOUBLE_CLICK:
+            // 双击业务逻辑
+            Serial_Printf("Key Double Click\r\n");
+            break;
+
+        case KEY_EVENT_MULTI_CLICK:
+            // N次点击业务逻辑（click_cnt为实际次数）
+            Serial_Printf("Key Multi Click: %d\r\n", click_cnt);
+            break;
+
+        case KEY_EVENT_LONG_PRESS:
+            // 长按业务逻辑
+            Serial_Printf("Key Long Press\r\n");
+            break;
+
+        default:
+            break;
+    }
+}
+
+/************************** 按键监测 应用层：按键事件回调函数 -end **************************/
 
 /* USER CODE END PTD */
 
@@ -140,8 +178,27 @@ int main(void)
   
 
   /****** 初始化 -begin ******/
+  SYSTEM_PowerOn(POWER_ON_TIMER);//执行开机程序  
 
 
+    //定时器+串口初始化
+    __HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_FE | UART_FLAG_NE | UART_FLAG_ORE | UART_FLAG_PE);//在串口初始化时，提前清除一次错误标志
+    HAL_UARTEx_ReceiveToIdle_IT(&huart1, RxBuff, LENGTH);	//使能接收中断
+    HAL_TIM_Base_Start_IT(&htim2);//10ms
+
+
+    /******** 按键监测  -begin ********/
+
+    // 按键初始化
+    Key_HW_Init();
+
+    // 注册按键事件回调函数
+    Key_Register_Event_Callback(Key_Event_Callback);
+
+    /******** 按键监测  -end ********/
+
+
+    
 
   /****** 初始化 -end ******/
 
@@ -156,7 +213,9 @@ int main(void)
   {	
 
     /****** 事件循环 -begin ******/
-
+//    Serial_Printf("Key 66666666666\r\n");
+//    //延时100ms
+    HAL_Delay(3000);
 
 
     /****** 事件循环 -end ******/
