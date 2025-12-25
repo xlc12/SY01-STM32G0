@@ -419,7 +419,7 @@ extern uint8_t dir_code;          // 磁力计当前方向编码（0x01-0x08）
 void OLED_Show_Data(void)
 {
 	OLED_ShowNum(1, 14, KeyNum, 2); //显示按键值
-	OLED_ShowNum(2, 14, KEY_GetMultiClickCount(), 2); //显示按键值次数
+//	OLED_ShowNum(2, 14, KEY_GetMultiClickCount(), 2); //显示按键值次数
     OLED_ShowSignedNum(1, 4, qmcdata[0], 5);
     OLED_ShowSignedNum(2, 4, qmcdata[1], 5);
     OLED_ShowSignedNum(3, 4, qmcdata[2], 5);

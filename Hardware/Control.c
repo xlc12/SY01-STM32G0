@@ -114,22 +114,22 @@ typedef enum {
  * @param  无
  * @retval ChargingStatus_t - 充电状态枚举值（禁止充电/正在充电/充电完成）
  */
-uint8_t getChargingStatus(void)
-{
-    // 1. 检测是否正在充电（PA11，高电平表示充电中）
-    if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11) == GPIO_PIN_SET)
-    {
-        return CHARGING_STATUS_CHARGING;
-    }
+// uint8_t getChargingStatus(void)
+// {
+//     // 1. 检测是否正在充电（PA11，高电平表示充电中）
+//     if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11) == GPIO_PIN_SET)
+//     {
+//         return CHARGING_STATUS_CHARGING;
+//     }
     
-    // 2. 检测是否充电完成（PC6，高电平表示充电完成）
-    if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == GPIO_PIN_SET)
-    {
-        return CHARGING_STATUS_CHARGED;
-    }
+//     // 2. 检测是否充电完成（PC6，高电平表示充电完成）
+//     if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == GPIO_PIN_SET)
+//     {
+//         return CHARGING_STATUS_CHARGED;
+//     }
     
-    // 3. 默认返回禁止充电状态
-    return CHARGING_STATUS_DISABLE;
-}
+//     // 3. 默认返回禁止充电状态
+//     return CHARGING_STATUS_DISABLE;
+// }
 
 
