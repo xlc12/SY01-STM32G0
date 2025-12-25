@@ -4,6 +4,15 @@
 
 #define LENGTH  64  		//接收缓冲区大小
 
+//弱2函数，实现在回调函数中处理具体的命令
+// __weak void UART_CommandCallback(uint8_t cmd, uint8_t* data, uint16_t len);
+//回调方式
+typedef void (*UART_Callback_t)(uint8_t cmd, uint8_t* data, uint16_t len);
+// 注册函数
+void UART_RegisterCallback(UART_Callback_t callback);
+
+
+
 void Serial_SendArray(uint8_t *Array, uint16_t Length);
 void Serial_Printf(char *format, ...);
 

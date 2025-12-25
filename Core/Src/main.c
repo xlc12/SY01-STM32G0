@@ -42,6 +42,13 @@
 
 #include "app_user.h"
 
+#include "motor_manage.h"
+
+#include "compass_manage.h"
+
+#include "usart_manage.h"
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,31 +78,41 @@ extern uint8_t PID_Start;//运行pid控制标志位
 
 
 
+/*********** app_user 应用层 ***************/
+uint8_t isPowerOff_flag = 0; //关机标志位
+HouseRotateStruct house_rotate = {0};
 /************************** 按键监测 应用层：按键事件回调函数 -· **************************/
 static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
-{  Serial_Printf("Key Key_Event_Callback\r\n");
+{  
+  
+    //按键事件命令构建
+    uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, event, click_cnt, USART_CMD_TAIL};
+    Serial_SendHexCmd(cmd, sizeof(cmd));
+    
+    
+    // Serial_Printf("Key Single Click，event=%d, click_cnt=%d\r\n", event, click_cnt);
+
     switch (event)
     {
         case KEY_EVENT_SINGLE_CLICK:
-            // 单击业务逻辑（示例：LED翻转、串口打印
-            // HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-            //打印单击
-            Serial_Printf("Key Single Click\r\n");
+            // Serial_Printf("Key Single Click\r\n");
             break;
 
         case KEY_EVENT_DOUBLE_CLICK:
             // 双击业务逻辑
-            Serial_Printf("Key Double Click\r\n");
+            // Serial_Printf("Key Double Click\r\n");
             break;
 
         case KEY_EVENT_MULTI_CLICK:
             // N次点击业务逻辑（click_cnt为实际次数）
-            Serial_Printf("Key Multi Click: %d\r\n", click_cnt);
+            // Serial_Printf("Key Multi Click: %d\r\n", click_cnt);
             break;
 
         case KEY_EVENT_LONG_PRESS:
-            // 长按业务逻辑
+            // 长按关机
             Serial_Printf("Key Long Press\r\n");
+            isPowerOff_flag = 1;
+            
             break;
 
         default:
@@ -104,6 +121,24 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
 }
 
 /************************** 按键监测 应用层：按键事件回调函数 -end **************************/
+
+
+
+
+
+/************************** 串口命令处理 应用层：串口命令回调函数 -· **************************/
+static void UART_Command_Callback(uint8_t cmd, uint8_t* data, uint16_t len)
+{
+    // 处理命令
+    Uart_CommandHandler(cmd, data, len);
+}
+/************************** 串口命令处理 应用层：串口命令回调函数 -end **************************/
+
+
+
+
+
+
 
 /* USER CODE END PTD */
 
@@ -146,6 +181,8 @@ void SystemClock_Config(void);
   * @brief  The application entry point.
   * @retval int
   */
+
+
 int main(void)
 {
 
@@ -191,35 +228,22 @@ int main(void)
 
 
 
-    /******** 按键监测 -begin ********/
 
     // 按键初始化
     Key_HW_Init();
-
     // 注册按键事件回调函数
     Key_Register_Event_Callback(Key_Event_Callback);
 
-    /******** 按键监测 -end ***/
-
-
-    /******** 步进电机 -begin ********/
-
      // 步进电机初始化
-    StepMotor_Init();
-    StepMotor_RunContinuously(STEP_MOTOR_FORWARD);
-		HAL_Delay(5000);
+     MOTOR_Init();
+    //  MOTOR_SetDirection(STEP_MOTOR_FORWARD);
+    
 
-    StepMotor_Stop(); //电机停止
-
-    StepMotor_RunContinuously(STEP_MOTOR_REVERSE);
-    //延时100ms
-    HAL_Delay(1000);
-
-    //旋转指定步数
-    StepMotor_RotateSteps(STEPS_PER_CIRCLE / 2); // 旋转半圈
+    //串口命令回调函数注册
+	  UART_RegisterCallback(UART_Command_Callback);
 
 
-    /******** 步进电机 -end ********/
+    MOTOR_RotateToAngle(INITIAL_ANGLE);
 
 
     
@@ -237,9 +261,40 @@ int main(void)
   {	
 
     /****** 事件循环 -begin ******/
-//    Serial_Printf("Key 66666666666\r\n");
-//    //延时100ms
-    HAL_Delay(3000);
+
+    //长按关机
+    if(isPowerOff_flag)
+    {
+      Serial_Printf("Key Long Press\r\n");
+      MOTOR_PowerOff();
+      SYSTEM_PowerOff(POWER_OFF_TIMER);
+    }
+
+    float angle = getCompassAngle();  
+    angle = 225;
+    //保存当前指南针向方位编码
+   house_rotate.Current_dir = getCompassDirection();
+
+   Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+
+   if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
+   {
+    int target_dir = house_rotate.Target_dir;
+    house_rotate.Target_dir = 0; //旋转完成后，将目标方向设为0
+      //计算目标角度
+      float target_angle = (target_dir-house_rotate.Current_dir) * 45 + INITIAL_ANGLE;
+      //设置电机转动到目标角度
+      if(target_angle < 0)
+      {
+        target_angle = 360 + target_angle;
+      }
+      MOTOR_RotateToAngle(target_angle);
+      Serial_Printf("target_angle = %f\r\n", target_angle);
+       //旋转完成后，将目标方向设为0
+   }
+
+
+    HAL_Delay(1000);
 
 
     /****** 事件循环 -end ******/

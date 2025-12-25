@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "app_user.h"
+
 extern int16_t qmcdata[3]; //原始磁力计数据
 extern int16_t xd, yd, zd; //转换XYZ
 extern float MagX, MagY, MagZ, MagH; // 滤波后的数据
@@ -26,6 +28,8 @@ extern uint8_t KeyNum; //按键值
 extern uint8_t key_tick;      // 用于按键计数
 extern uint8_t key_Flag;  //按键串口发送标志位
 extern uint8_t key_Release_Flag; //按键发送一次性标志位
+
+
 
 /****************************串口*****************************************/
 
@@ -117,54 +121,98 @@ uint8_t Send_Batter_Flag = 0;   //允许上报电量标志位(百分比)
 extern uint8_t PID_Start;//运行pid控制标志位
 
 
+// void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+// {
+//   if(huart -> Instance == USART1)	// 判断发生接收中断的串口
+//   {
+//     //Serial_Printf("\r\n已经接收到不定长数据，数据如下：");
+//     //HAL_UART_Transmit_IT(&huart1, RxBuff, Size); // 回显发送的数据
+
+//     /**************************************数据解析****************************************/
+	  
+//     //先判断接收长度是否满足完整数据包（5个字节：55 52 1A 方位 5B）
+//     if(Size == 5)
+//     {
+//       // 2. 直接判断包头、命令字、包尾
+//       if(RxBuff[0] == 0x55 && RxBuff[1] == 0x52 && RxBuff[2] == 0x1A && RxBuff[4] == 0x5B)
+//       {
+// 		  PID_Start = 1;//运行PID控制
+//         // 解析电机旋转方位（第4个字节，数组下标3）
+//         Motor_Direction = RxBuff[3];
+
+//         //解析成功后的操作
+//         // HAL_UART_Transmit_IT(&huart1, &Motor_Direction, 1); // 回显方位数据
+//       }
+//     }
+
+//     // 上位机要求读取电量(百分比)
+//     if(Size == 4) // 匹配4字节数据包：55 52 A8 5B
+//     {
+//       if(RxBuff[0] == 0x55 && RxBuff[1] == 0x52 && RxBuff[2] == 0xA8 && RxBuff[3] == 0x5B)
+//       {
+//         Send_Batter_Flag = 1; // 上位机要求读取电量(百分比)
+//         //HAL_UART_Transmit_IT(&huart1, &Send_Batter_Flag, 1); // 回显标志位
+//       }
+//     }
+// 	// 上位机校准磁力计（扩展为6字节：55 52 1B 高字节 低字节 5B）
+// 	if(RxBuff[0] == 0x55 && RxBuff[1] == 0x52 && RxBuff[2] == 0x1B && RxBuff[5] == 0x5B)
+// 	{
+// 		// 拼接2个字节为16位整数（小端模式：低字节在前，高字节在后）
+// 		uint16_t target_val = (uint16_t)RxBuff[4] | ((uint16_t)RxBuff[3] << 8);
+		
+// 		Azimuth_off = my_abs(target_val-Azimuth);
+
+// 		// 回显OK确认
+// 	//    Serial_Printf("OK: %.2f\r\n", Azimuth_off);
+// 	}
+
+//     HAL_UARTEx_ReceiveToIdle_IT(&huart1, RxBuff, LENGTH);	//使能接收中断
+//   }
+// }
+
+/***************回调函数 */
+
+
+static UART_Callback_t uart_callback = NULL;
+
+void UART_RegisterCallback(UART_Callback_t callback)
+{
+    uart_callback = callback;
+}
+
+
+
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-  if(huart -> Instance == USART1)	// 判断发生接收中断的串口
-  {
-    //Serial_Printf("\r\n已经接收到不定长数据，数据如下：");
-    //HAL_UART_Transmit_IT(&huart1, RxBuff, Size); // 回显发送的数据
-
-    /**************************************数据解析****************************************/
-	  
-    //先判断接收长度是否满足完整数据包（5个字节：55 52 1A 方位 5B）
-    if(Size == 5)
+    if(huart->Instance == USART1)
     {
-      // 2. 直接判断包头、命令字、包尾
-      if(RxBuff[0] == 0x55 && RxBuff[1] == 0x52 && RxBuff[2] == 0x1A && RxBuff[4] == 0x5B)
-      {
-		  PID_Start = 1;//运行PID控制
-        // 解析电机旋转方位（第4个字节，数组下标3）
-        Motor_Direction = RxBuff[3];
+        // 检查最小帧长度（帧头2字节 + 命令字1字节 + 命令1字节 + 帧尾1字节 = 5字节）
+        if(Size >= 5)
+        {
+            // 检查帧头和帧尾
+            if(RxBuff[0] == USART_CMD_HEAD1 && RxBuff[1] == USART_CMD_HEAD2 && RxBuff[Size-1] == USART_CMD_TAIL)
+            {
+                uint8_t cmd = RxBuff[2];  // 命令字
+                uint8_t* data = &RxBuff[3];  // 命令数据起始地址
+                uint16_t data_len = Size - 4;  // 数据长度（减去帧头、命令字和帧尾）
+                
+                // // 调用弱函数
+                // UART_CommandCallback(cmd, data, data_len);
 
-        //解析成功后的操作
-        // HAL_UART_Transmit_IT(&huart1, &Motor_Direction, 1); // 回显方位数据
-      }
+                // 调用用户注册的回调函数
+                if(uart_callback)
+                {
+                    uart_callback(cmd, data, data_len);
+                }
+                
+            }
+        }
+        
+        // 重新使能接收
+        HAL_UARTEx_ReceiveToIdle_IT(&huart1, RxBuff, LENGTH);
     }
-
-    // 上位机要求读取电量(百分比)
-    if(Size == 4) // 匹配4字节数据包：55 52 A8 5B
-    {
-      if(RxBuff[0] == 0x55 && RxBuff[1] == 0x52 && RxBuff[2] == 0xA8 && RxBuff[3] == 0x5B)
-      {
-        Send_Batter_Flag = 1; // 上位机要求读取电量(百分比)
-        //HAL_UART_Transmit_IT(&huart1, &Send_Batter_Flag, 1); // 回显标志位
-      }
-    }
-	// 上位机校准磁力计（扩展为6字节：55 52 1B 高字节 低字节 5B）
-	if(RxBuff[0] == 0x55 && RxBuff[1] == 0x52 && RxBuff[2] == 0x1B && RxBuff[5] == 0x5B)
-	{
-		// 拼接2个字节为16位整数（小端模式：低字节在前，高字节在后）
-		uint16_t target_val = (uint16_t)RxBuff[4] | ((uint16_t)RxBuff[3] << 8);
-		
-		Azimuth_off = my_abs(target_val-Azimuth);
-
-		// 回显OK确认
-	//    Serial_Printf("OK: %.2f\r\n", Azimuth_off);
-	}
-
-    HAL_UARTEx_ReceiveToIdle_IT(&huart1, RxBuff, LENGTH);	//使能接收中断
-  }
 }
+
 
 // 【必须新增】串口错误回调函数（解决错误导致的卡死）
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
