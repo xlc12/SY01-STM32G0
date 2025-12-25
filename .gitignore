@@ -29,7 +29,7 @@ Release/
 debug/
 release/
 Listings/
-MDK-ARM/
+
 
 # Keil 生成的临时文件
 *.plg
