@@ -172,6 +172,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
@@ -185,6 +186,9 @@ int main(void)
     __HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_FE | UART_FLAG_NE | UART_FLAG_ORE | UART_FLAG_PE);//在串口初始化时，提前清除一次错误标志
     HAL_UARTEx_ReceiveToIdle_IT(&huart1, RxBuff, LENGTH);	//使能接收中断
     HAL_TIM_Base_Start_IT(&htim2);//10ms
+    HAL_TIM_Base_Start_IT(&htim3);//10ms
+    TIM3_SetInterruptTime(1); //设置TIM3为1000ms中断
+
 
 
     /******** 按键监测  -begin ********/

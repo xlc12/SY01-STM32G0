@@ -25,6 +25,7 @@
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 /* TIM2 init function */
 void MX_TIM2_Init(void)
@@ -73,6 +74,53 @@ void MX_TIM2_Init(void)
 
 }
 
+/* TIM3 init function */
+void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 64 - 1;  
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 1000 - 1;      /* 默认1ms中断 */
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 {
 
@@ -90,6 +138,21 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     /* USER CODE BEGIN TIM2_MspInit 1 */
 
     /* USER CODE END TIM2_MspInit 1 */
+  }
+  else if(tim_baseHandle->Instance == TIM3)
+  {
+    /* USER CODE BEGIN TIM3_MspInit 0 */
+
+    /* USER CODE END TIM3_MspInit 0 */
+    /* TIM3 clock enable */
+    __HAL_RCC_TIM3_CLK_ENABLE();
+
+    /* TIM3 interrupt Init */
+    HAL_NVIC_SetPriority(TIM3_IRQn, 0, 1);
+    HAL_NVIC_EnableIRQ(TIM3_IRQn);
+    /* USER CODE BEGIN TIM3_MspInit 1 */
+
+    /* USER CODE END TIM3_MspInit 1 */
   }
 }
 
@@ -110,8 +173,59 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
     /* USER CODE END TIM2_MspDeInit 1 */
   }
+  else if(tim_baseHandle->Instance == TIM3)
+  {
+    /* USER CODE BEGIN TIM3_MspDeInit 0 */
+
+    /* USER CODE END TIM3_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM3_CLK_DISABLE();
+
+    /* TIM3 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(TIM3_IRQn);
+    /* USER CODE BEGIN TIM3_MspDeInit 1 */
+
+    /* USER CODE END TIM3_MspDeInit 1 */
+  }
 }
 
 /* USER CODE BEGIN 1 */
+
+/**
+  * @brief 设置TIM3的中断时间
+  * @param ms: 中断时间，单位毫秒，范围1ms-10ms
+  * @retval None
+  */
+void TIM3_SetInterruptTime(uint32_t ms)
+{
+  /* 验证输入参数范围 */
+  if (ms < 1)
+  {
+    ms = 1;
+  }
+  else if (ms > 10)
+  {
+    ms = 10;
+  }
+
+  /* 停止定时器 */
+  HAL_TIM_Base_Stop_IT(&htim3);
+
+  /* 重新配置定时器参数 */
+  /* 系统时钟为64MHz，APB1时钟为64MHz，TIM3时钟为APB1时钟的2倍即128MHz */
+  /* 预分频器：128-1，计数频率 = 128MHz / 128 = 1MHz（1us计数一次） */
+  htim3.Init.Prescaler = 64 - 1;
+  /* 周期值：ms * 1000 - 1，得到ms级中断 */
+  htim3.Init.Period = (ms * 1000) - 1;
+
+  /* 应用新的配置 */
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* 重新启动定时器中断 */
+  HAL_TIM_Base_Start_IT(&htim3);
+}
 
 /* USER CODE END 1 */

@@ -52,55 +52,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
    /******* 按键扫描 -begin *******/ 
    Key_Scan_All(); 
    /******* 按键扫描 -end *******/
-   
-
-    
+  //  Serial_Printf("Timer\r\n");
 
   }
+
+
+  if (htim->Instance == TIM3)
+
+  {
+
+    Serial_Printf("1\r\n");
+
+  }
+
+
+
+
 }
-
-// uint8_t KEY_GetMultiClickCount(void)  //获取多击时点击次数
-// {
-//     return key_tick;
-// }
-
-/*
-参数：延时时间，单位ms
-
-参数说明：delay_ms = 0时直接关机；delay_ms ！= 0时，延时delay_ms ms后再关机
-返回：无
-
-接口具体实现： 将 IO（PA12）拉低即关机
-*/
-// void SYSTEM_PowerOff(int delay_ms) //长按两秒关机
-// {
-// 	//执行长按延迟关机程序
-//     if(KeyNum == 2)
-//     {
-// 	   // 组装数据包（5字节：包头0X55 0X52 + 功能码0XA4 + 关机 + 包尾0X2B）
-// 		uint8_t data_State4[5] = {0X55, 0X52, 0XA4, 0X01, 0X2B};//关机指令发送上位机       
-//       // 发送数据包（仅发送一次）
-//       Serial_SendArray(data_State4, 5);         
-//       HAL_Delay(delay_ms);
-//       // 立即执行关机：拉低PA12
-//       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
-
-//     }
-// }
-
-/*
-参数：延时时间，单位ms
-
-参数说明：delay_ms = 0时直接开机；delay_ms ！= 0时，延时delay_ms ms后再开机
-
-返回：无
-
-接口具体实现： 将 IO（PA12）拉高
-// */
-// void SYSTEM_PowerOn(int delay_ms) //长按两秒开机
-// {
-// 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);//PA12拉低
-// 	HAL_Delay(delay_ms);//长按2s后自动识别开机
-//     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET); //PA12拉低--开机
-// }
-
