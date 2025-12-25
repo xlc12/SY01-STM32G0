@@ -43,7 +43,7 @@ uint8_t QMC5883_GetData(int16_t *QMC_data);//读数据
 void qmc5883l_filter(void);
 void qmc_set_dir_code(void);
 void Get_QMC5883P_Data(void);
-uint8_t getCompassDirection(void);
+
 
 /*********************************************************************/
 

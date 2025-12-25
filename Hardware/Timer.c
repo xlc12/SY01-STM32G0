@@ -12,6 +12,24 @@
 #include "Timer.h"            
 #include "My_USART.h"
 
+#include "main.h"
+
+#include "QMC5883P.h"
+#include "qmc_5883p_data.h"
+#include <string.h>
+//#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+
+#include "power_manage.h"
+
+#include "key_manage.h"
+#include "step_motor.h"
+
+#include "motor_manage.h"
 
 #include "app_user.h"
 //  internal clock  64-1   10000-1  记得使能定时器
@@ -46,6 +64,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /******* 处理磁力计滤波 -begin *******/ 
 
 	 qmc5883l_filter();// 滤波函数调用
+   Get_QMC5883P_Data();
 
    /******* 处理磁力计滤波 -end *******/ 
 
@@ -54,6 +73,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
    Key_Scan_All(); 
    /******* 按键扫描 -end *******/
   //  Serial_Printf("Timer\r\n");
+  //pid 控制
+  MOTOR_UpdatePIDControl();
+  
 
   }
 

@@ -291,7 +291,7 @@ void Get_QMC5883P_Data(void) //获取数据
 返回：1-8；东为1，东南为2，南为3 ，西南为4，西为5，西北为6 , 北为7，东北为8
 */
 
-uint8_t getCompassDirection(void) //获取指南针方位
-{
-	return dir_code;  
-}
+// uint8_t GetCompassDirection(void) //获取指南针方位
+// {
+// 	return dir_code;  
+// }
