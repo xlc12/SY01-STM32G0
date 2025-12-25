@@ -76,7 +76,7 @@ void Step_PID_Control(void)//步进电机PID控制
 	Step_Count = MPU_Turn(GetTurntableAngle(), Target_Angle);        
 	
 	// 3. 控制步进电机转动对应角度
-    StepMotor_RotateSteps(Step_Count, 1); 
+//    StepMotor_RotateSteps(Step_Count, 1); 
 }
 
 
@@ -89,7 +89,7 @@ void  Start_Zero_Hourse(void) //执行上电复位马儿位置程序
 	if(PID_Start==0&&Flag==0)
 	{
 		Zero_Step_Count = MPU_Turn(GetTurntableAngle(), TURN_TABLE_INIT_ANGLE);//PID运算 
-		StepMotor_RotateSteps(Zero_Step_Count, 1); //角度控制
+//		StepMotor_RotateSteps(Zero_Step_Count, 1); //角度控制
 		
 		// 计算两个角度的绝对差值，判断是否在1度以内
 		if(my_abs(GetTurntableAngle() - TURN_TABLE_INIT_ANGLE) <= 1) // 达到目标角度±1度范围内     
@@ -99,14 +99,14 @@ void  Start_Zero_Hourse(void) //执行上电复位马儿位置程序
 	}
 }
 	
-/**
- * @brief  充电状态枚举定义
- */
-typedef enum {
-    CHARGING_STATUS_DISABLE = 0,    /**< 禁止充电 (已连接充电器但未充电) */
-    CHARGING_STATUS_CHARGING = 1,   /**< 正在充电 */
-    CHARGING_STATUS_CHARGED = 2     /**< 充电完成 */
-} ChargingStatus_t; 
+// /**
+//  * @brief  充电状态枚举定义
+//  */
+// typedef enum {
+//     CHARGING_STATUS_DISABLE = 0,    /**< 禁止充电 (已连接充电器但未充电) */
+//     CHARGING_STATUS_CHARGING = 1,   /**< 正在充电 */
+//     CHARGING_STATUS_CHARGED = 2     /**< 充电完成 */
+// } ChargingStatus_t; 
 
 /**
  * @brief  获取当前充电状态

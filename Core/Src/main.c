@@ -191,7 +191,7 @@ int main(void)
 
 
 
-    /******** 按键监测  -begin ********/
+    /******** 按键监测 -begin ********/
 
     // 按键初始化
     Key_HW_Init();
@@ -199,7 +199,27 @@ int main(void)
     // 注册按键事件回调函数
     Key_Register_Event_Callback(Key_Event_Callback);
 
-    /******** 按键监测  -end ********/
+    /******** 按键监测 -end ***/
+
+
+    /******** 步进电机 -begin ********/
+
+     // 步进电机初始化
+    StepMotor_Init();
+    StepMotor_RunContinuously(STEP_MOTOR_FORWARD);
+		HAL_Delay(5000);
+
+    StepMotor_Stop(); //电机停止
+
+    StepMotor_RunContinuously(STEP_MOTOR_REVERSE);
+    //延时100ms
+    HAL_Delay(1000);
+
+    //旋转指定步数
+    StepMotor_RotateSteps(STEPS_PER_CIRCLE / 2); // 旋转半圈
+
+
+    /******** 步进电机 -end ********/
 
 
     

@@ -196,27 +196,26 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
   * @param ms: 中断时间，单位毫秒，范围1ms-10ms
   * @retval None
   */
-void TIM3_SetInterruptTime(uint32_t ms)
+void TIM3_SetInterruptTime(uint32_t us)
 {
   /* 验证输入参数范围 */
-  if (ms < 1)
+  if (us < 1000)
   {
-    ms = 1;
+    us = 1000;
   }
-  else if (ms > 10)
+  else if (us > 10000)
   {
-    ms = 10;
+    us = 10000;
   }
 
   /* 停止定时器 */
   HAL_TIM_Base_Stop_IT(&htim3);
 
   /* 重新配置定时器参数 */
-  /* 系统时钟为64MHz，APB1时钟为64MHz，TIM3时钟为APB1时钟的2倍即128MHz */
-  /* 预分频器：128-1，计数频率 = 128MHz / 128 = 1MHz（1us计数一次） */
+  
   htim3.Init.Prescaler = 64 - 1;
   /* 周期值：ms * 1000 - 1，得到ms级中断 */
-  htim3.Init.Period = (ms * 1000) - 1;
+  htim3.Init.Period = (us * 1) - 1;
 
   /* 应用新的配置 */
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)

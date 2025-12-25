@@ -1,9 +1,11 @@
 #ifndef __STEP_MOTOR_H
 #define __STEP_MOTOR_H
 
-#include "main.h"  // ÊÊÅäSTM32G0ÏµÁĞHAL¿â
+#include "main.h"  // é€‚é…STM32G0ç³»åˆ—HALåº“
+#include "tim.h"   // å®šæ—¶å™¨3å¤´æ–‡ä»¶
+#include "app_user.h"
 
-// ************************* Òı½Åºê¶¨Òå£¨°´ÒªÇóĞŞ¸Ä£© *************************
+// ************************* å¼•è„šå®å®šä¹‰ï¼ˆæŒ‰è¦æ±‚ä¿®æ”¹ï¼‰ *************************
 #define MOTOR_PORTA    GPIOA
 #define MOTOR_PORTB    GPIOB
 #define MOTOR_PIN_AIN1 GPIO_PIN_15  // AIN1 -> GPIOA_15
@@ -11,31 +13,51 @@
 #define MOTOR_PIN_BIN1 GPIO_PIN_4   // BIN1 -> GPIOB_4
 #define MOTOR_PIN_BIN2 GPIO_PIN_5   // BIN2 -> GPIOB_5
 
-// ************************* º¯ÊıÉùÃ÷ *************************
+// ************************* ç”µæœºçŠ¶æ€å®šä¹‰ *************************
+typedef enum {
+    STEP_MOTOR_STOP = 0,  // åœæ­¢çŠ¶æ€
+    STEP_MOTOR_FORWARD,   // æ­£è½¬çŠ¶æ€
+    STEP_MOTOR_REVERSE    // åè½¬çŠ¶æ€
+} StepMotor_StateTypeDef;
+
+// ************************* å‡½æ•°å£°æ˜ *************************
 /**
- * @brief  ²½½øµç»ú³õÊ¼»¯£¨ÅäÖÃGPIOÎªÊä³öÄ£Ê½£©
+ * @brief  æ­¥è¿›ç”µæœºåˆå§‹åŒ–ï¼ˆé…ç½®GPIOä¸ºè¾“å‡ºæ¨¡å¼å’Œå®šæ—¶å™¨3ï¼‰
  */
 void StepMotor_Init(void);
 
 /**
- * @brief  ²½½øµç»úÕı·´×ª¿ØÖÆ
- * @param  dir: ·½ÏòÑ¡Ôñ£¨1-Õı×ª£¬0-·´×ª£©
- * @param  speed_ms: ÏàĞòÇĞ»»¼ä¸ô£¨µ¥Î»£ºms£¬ÖµÔ½Ğ¡ËÙ¶ÈÔ½¿ì£©
+ * @brief  è®¾ç½®ç”µæœºé€Ÿåº¦
+ * @param  speed_ms: ç›¸åºåˆ‡æ¢é—´éš”ï¼ˆå•ä½ï¼šmsï¼Œå€¼è¶Šå°é€Ÿåº¦è¶Šå¿«ï¼ŒèŒƒå›´1-10msï¼‰
  */
-void StepMotor_Control(uint8_t dir, uint16_t speed_ms);
+void StepMotor_SetSpeed(uint16_t speed_ms);
 
 /**
- * @brief  ¿ØÖÆµç»ú×ª¶¯Ö¸¶¨²½Êı
- * @param  steps£ºĞèÒª×ª¶¯µÄ²½Êı£¨ÕıÊı£ºÕı×ª£¬¸ºÊı£º·´×ª£©
- * @param  speed_ms£ºÃ¿²½¼ä¸ôÊ±¼ä£¨ms£¬¿ØÖÆËÙ¶È£¬ÖµÔ½Ğ¡Ô½¿ì£©
+ * @brief  ç«‹å³åœæ­¢ç”µæœº
  */
-void StepMotor_RotateSteps(int32_t steps, uint16_t speed_ms);
+void StepMotor_Stop(void);
 
 /**
- * @brief  ¿ØÖÆµç»ú×ªµ½Ä¿±ê½Ç¶È
- * @param  target_angle£ºÄ¿±ê½Ç¶È£¨µ¥Î»£º¶È£©
- * @param  speed_ms£ºÃ¿²½¼ä¸ôÊ±¼ä£¨ms£©
+ * @brief  ç”µæœºä¸€ç›´è½¬
+ * @param  dir: æ–¹å‘é€‰æ‹©ï¼ˆSTEP_MOTOR_FORWARD-æ­£è½¬ï¼ŒSTEP_MOTOR_REVERSE-åè½¬ï¼‰
  */
-void StepMotor_RotateToAngle(float target_angle, uint16_t speed_ms);
+void StepMotor_RunContinuously(StepMotor_StateTypeDef dir);
+
+/**
+ * @brief  æ§åˆ¶ç”µæœºè½¬åŠ¨æŒ‡å®šæ­¥æ•°
+ * @param  stepsï¼šéœ€è¦è½¬åŠ¨çš„æ­¥æ•°ï¼ˆæ­£æ•°ï¼šæ­£è½¬ï¼Œè´Ÿæ•°ï¼šåè½¬ï¼‰
+ */
+void StepMotor_RotateSteps(int32_t steps);
+
+/**
+ * @brief  è·å–ç”µæœºå½“å‰çŠ¶æ€
+ * @retval å½“å‰çŠ¶æ€ï¼šSTEP_MOTOR_STOP/STEP_MOTOR_FORWARD/STEP_MOTOR_REVERSE
+ */
+StepMotor_StateTypeDef StepMotor_GetState(void);
+
+/**
+ * @brief  å®šæ—¶å™¨3ä¸­æ–­å¤„ç†å‡½æ•°ï¼ˆåœ¨tim.cä¸­è°ƒç”¨ï¼‰
+ */
+void StepMotor_TimerIRQHandler(void);
 
 #endif /* __STEP_MOTOR_H */

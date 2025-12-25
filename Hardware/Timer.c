@@ -12,7 +12,8 @@
 #include "Timer.h"            
 #include "My_USART.h"
 
-#include "key_manage.h"
+
+#include "app_user.h"
 //  internal clock  64-1   10000-1  记得使能定时器
 
 char buf[32];  // 在文件开头或函数内声明
@@ -61,7 +62,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   {
 
-    Serial_Printf("1\r\n");
+    StepMotor_TimerIRQHandler();
 
   }
 
