@@ -1,6 +1,7 @@
 #include "usart_manage.h"
 
-extern uint8_t houseRotateTargetPoint_dir; //目标指向方位编码（0x01-0x08）
+extern uint8_t houseRotateTargetPoint_dir;   //目标指向方位编码（0x01-0x08）
+extern uint8_t isPowerOff_flag;
 
 // 串口发送命令
 void Serial_SendHexCmd(uint8_t *data, uint16_t len)
@@ -47,6 +48,21 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
         //接收磁力计校准角度命令
         case USART_CMD_CALIBRATION_ANGLE:
             
+            break;
+
+        //接收接收心跳命令  //返回设备信息：电量、转盘角度、磁力计角度、电机状态（待定）
+        case USART_CMD_HEARTBEAT:
+            // Serial_Printf("USART_CMD_HEARTBEAT\r\n");
+
+            //构建心跳数据包
+            uint8_t heartbeat[10] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_HEARTBEAT, getBatteryLevel(), getTurntableAngle(), getCompassDirection(), USART_CMD_TAIL};
+            Serial_SendHexCmd(heartbeat, sizeof(heartbeat));
+            break;
+        
+        //关机
+        case USART_CMD_SHUTDOWN:
+            //关机
+            isPowerOff_flag = 1;
             break;
         
         default:

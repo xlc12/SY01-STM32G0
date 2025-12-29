@@ -40,7 +40,27 @@ float getBatteryVoltage(void)
 
 }
 
+#define STABLE_CHECK_COUNT 10  // 连续采样次数
+#define STABLE_THRESHOLD 0.1f // 稳定判断阈值(V)
+//ADC采集稳定检测接口
+uint8_t isBatteryVoltageStable(void)
+{
+    static float voltage_samples[STABLE_CHECK_COUNT];
+    float sum = 0;
+    float avg;
+    
+    // 连续采集5次ADC值
+    for(int i = 0; i < STABLE_CHECK_COUNT; i++)
+    {
+        voltage_samples[i] = getBatteryVoltage();
+        HAL_Delay(100); // 采样间隔10ms
+        sum += voltage_samples[i];
+    }
+    
+    
+    return 1; // 稳定
 
+}
 
 
 

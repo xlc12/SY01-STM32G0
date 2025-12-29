@@ -22,6 +22,7 @@
 #include "app_user.h"
 
 #include "motor_manage.h"
+#include "compass_manage.h"
 
 
 

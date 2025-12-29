@@ -83,9 +83,11 @@ extern uint8_t PID_Start;//运行pid控制标志位
 uint8_t isPowerOff_flag = 0; //关机标志位
 HouseRotateStruct house_rotate = {0};
 /************************** 按键监测 应用层：按键事件回调函数 -· **************************/
+//按键监听   --*功能需求 5*--
 static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
 {  
   
+    
     //按键事件命令构建
     uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, event, click_cnt, USART_CMD_TAIL};
     Serial_SendHexCmd(cmd, sizeof(cmd));
@@ -139,6 +141,8 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
 
 
 /************************** 串口命令处理 应用层：串口命令回调函数 -· **************************/
+// --*功能需求 6*--  串口接收命令处理
+
 static void UART_Command_Callback(uint8_t cmd, uint8_t* data, uint16_t len)
 {
     // 处理命令
@@ -228,7 +232,9 @@ int main(void)
   
 
   /****** 初始化 -begin ******/
-  SYSTEM_PowerOn(POWER_ON_TIMER);//执行开机程序  
+
+  //执行开机程序  --*功能需求 1*--
+    SYSTEM_PowerOn(POWER_ON_TIMER);
 
 
     //定时器+串口初始化
@@ -254,28 +260,16 @@ int main(void)
     
 
     //串口命令回调函数注册
-    /*业务需求-2、串口命令接收处理*/
+    /*业务需求-2、串口命令接收处理*/  
 	  UART_RegisterCallback(UART_Command_Callback);
 
-
+    //开机回到初始位  --*功能需求 3*--
     MOTOR_RotateToAngle(INITIAL_ANGLE);
 
+    //待ADC采集稳定
+    isBatteryVoltageStable();
 
-
-    uint8_t voltage_S[20] = {0};
-    for (int i = 0; i < 20; i++)
-    {
-      /* code */
-      //丢弃不稳定的电压值
-      uint8_t voltage = getBatteryLevel();
-     //打印电压值
-      Serial_Printf("voltage = %d\r\n", voltage);
-      //延时100ms
-      HAL_Delay(200);
-
-    }
-
-
+   
     
 
   /****** 初始化 -end ******/
@@ -290,52 +284,52 @@ int main(void)
   while (1)
   {	
 
-    
-    
-
-    
-
     /****** 事件循环 -begin ******/
 
-    //长按关机
+    //长按关机，由于带延时操作，不在中断中执行  --*功能需求 2*--
     if(isPowerOff_flag)
     {
       Serial_Printf("Key Long Press\r\n");
-      MOTOR_PowerOff();
-      SYSTEM_PowerOff(POWER_OFF_TIMER);
+      MOTOR_PowerOff();  //执行开关机点击动作，待实现
+      SYSTEM_PowerOff(POWER_OFF_TIMER);  //系统延时关机
     }
+
+
+
+    
 
     /*业务需求-3、财神位转动*/
     //财神位转动算法 -begin 
-  float angle = getCompassAngle();  
-  // angle = 225;
-  //保存当前指南针向方位编码
-   house_rotate.Current_dir = getCompassDirection();
-   house_rotate.Current_dir = 1;
+    float angle = getCompassAngle();  
+    // angle = 225;
+    //保存当前指南针向方位编码
+    house_rotate.Current_dir = getCompassDirection();
+    house_rotate.Current_dir = 1;
 
-   Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+    Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
-   if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
-   {
-    int target_dir = house_rotate.Target_dir;
-    house_rotate.Target_dir = 0; //旋转完成后，将目标方向设为0
-      //计算目标角度
-      float target_angle = (target_dir-house_rotate.Current_dir) * 45 + INITIAL_ANGLE;
-      //设置电机转动到目标角度
-      if(target_angle < 0)
-      {
-        target_angle = 360 + target_angle;
+    if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
+    {
+      int target_dir = house_rotate.Target_dir;
+      house_rotate.Target_dir = 0; //旋转完成后，将目标方向设为0
+        //计算目标角度
+        float target_angle = (target_dir-house_rotate.Current_dir) * 45 + INITIAL_ANGLE;
+        //设置电机转动到目标角度
+        if(target_angle < 0)
+        {
+          target_angle = 360 + target_angle;
+        }
+        target_angle = 360 - target_angle;  //反向
+        MOTOR_RotateToAngle(target_angle);
+        Serial_Printf("target_angle = %f\r\n", target_angle);
       }
-      target_angle = 360 - target_angle;  //反向
-      MOTOR_RotateToAngle(target_angle);
-      Serial_Printf("target_angle = %f\r\n", target_angle);
-    }
 
-    //财神位转动算法 -end
+      //财神位转动算法 -end
 
 
 
-
+    //串口-设备信息上报  --*功能需求 4*--
+    //低电压、充电、充满上报
     DeviceInfo_CycleSend();//周期性监测设备信息
 
 

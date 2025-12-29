@@ -45,6 +45,9 @@ void SYSTEM_PowerOn(int delay_ms);
 //电池电压检测接口
 float getBatteryVoltage(void);
 
+//ADC采集稳定检测接口
+uint8_t isBatteryVoltageStable(void);
+
 //电池电量检测接口
 uint8_t getBatteryLevel(void);
 

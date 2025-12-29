@@ -24,7 +24,7 @@
 // #include "step_motor.h"
 
 
-#define POWER_ON_TIMER 2000 //开机延时时间--2s
+#define POWER_ON_TIMER 1000 //开机延时时间--2s
 
 #define POWER_OFF_TIMER 3000 //关机延时时间--2s
 
@@ -137,6 +137,8 @@ extern HouseRotateStruct house_rotate;
 #define USART_S_CMD_KEY_COUNT 0x0A4
 //磁力计方向上报命令
 #define USART_S_CMD_COMPASS_ANGLE 0x0A5
+//心跳上报命令 //返回设备信息：电量、转盘角度、磁力计角度、电机状态
+#define USART_S_CMD_HEARTBEAT 0x0A6
 
 
 
