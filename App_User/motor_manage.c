@@ -15,7 +15,7 @@ void MOTOR_Init(void )
     PID_Init(&motor_pid, PID_KP, PID_KI, PID_KD, -10.0f, 10.0f);
 }
 
-// 电机正反转，-一直转动
+// 电机正反转，-一直转动STEP_MOTOR_FORWARD:1 ; STEP_MOTOR_REVERSE:2
 void MOTOR_SetDirection(StepMotor_StateTypeDef state) 
 {
     
@@ -54,6 +54,23 @@ uint8_t getMOTOR_State()
 float getTurntableAngle()
 {
     return ADC_PB1_ConvertToAngle();
+}
+
+
+//关机动作
+void MOTOR_PowerOff(void)
+{   
+    MOTOR_RotateToAngle(INITIAL_ANGLE+20);
+    // while(pid_control_active)
+    // {
+    //     // 等待PID控制完成
+    // }
+    // MOTOR_RotateToAngle(INITIAL_ANGLE-20);
+    // while(pid_control_active)
+    // {
+    //     // 等待PID控制完成
+    // }
+    // MOTOR_RotateToAngle(INITIAL_ANGLE);
 }
 
 
@@ -156,13 +173,14 @@ bool MOTOR_UpdatePIDControl(void)
     // 根据PID输出控制电机转动方向和速度
     if (pid_output > 0)
     {
-        // 正转
-        StepMotor_RunContinuously(STEP_MOTOR_FORWARD);
+        // 反转
+        StepMotor_RunContinuously(STEP_MOTOR_REVERSE);
     }
     else if (pid_output < 0)
     {
-        // 反转
-        StepMotor_RunContinuously(STEP_MOTOR_REVERSE);
+        // 正转
+        StepMotor_RunContinuously(STEP_MOTOR_FORWARD);
+        
     }
     else
     {

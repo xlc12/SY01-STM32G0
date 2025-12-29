@@ -115,7 +115,7 @@ void Key_Scan_All(void)
         {
             /* code */
             continue; // 防抖中，跳过本次扫描
-            Serial_Printf("Key continue6666666666666666666\r\n");
+            // Serial_Printf("Key continue6666666666666666666\r\n");
         }
         
 

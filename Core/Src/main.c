@@ -79,6 +79,7 @@ extern uint8_t PID_Start;//运行pid控制标志位
 
 
 /*********** app_user 应用层 ***************/
+
 uint8_t isPowerOff_flag = 0; //关机标志位
 HouseRotateStruct house_rotate = {0};
 /************************** 按键监测 应用层：按键事件回调函数 -· **************************/
@@ -96,16 +97,27 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
     {
         case KEY_EVENT_SINGLE_CLICK:
             // Serial_Printf("Key Single Click\r\n");
+            //回到原位
+            MOTOR_RotateToAngle(INITIAL_ANGLE);
             break;
 
         case KEY_EVENT_DOUBLE_CLICK:
             // 双击业务逻辑
             // Serial_Printf("Key Double Click\r\n");
+            //停止旋转
+             MOTOR_Stop();
             break;
 
         case KEY_EVENT_MULTI_CLICK:
             // N次点击业务逻辑（click_cnt为实际次数）
             // Serial_Printf("Key Multi Click: %d\r\n", click_cnt);
+            //点击三次 business logic
+            if(click_cnt == 3)
+            {
+              //一直旋转
+              MOTOR_SetDirection(STEP_MOTOR_FORWARD);
+                // Serial_Printf("Key Multi Click: %d\r\n", click_cnt);
+            }
             break;
 
         case KEY_EVENT_LONG_PRESS:
@@ -232,18 +244,36 @@ int main(void)
     // 按键初始化
     Key_HW_Init();
     // 注册按键事件回调函数
+    /*业务需求-1、按键事件*/
     Key_Register_Event_Callback(Key_Event_Callback);
 
      // 步进电机初始化
+     
      MOTOR_Init();
     //  MOTOR_SetDirection(STEP_MOTOR_FORWARD);
     
 
     //串口命令回调函数注册
+    /*业务需求-2、串口命令接收处理*/
 	  UART_RegisterCallback(UART_Command_Callback);
 
 
     MOTOR_RotateToAngle(INITIAL_ANGLE);
+
+
+
+    uint8_t voltage_S[20] = {0};
+    for (int i = 0; i < 20; i++)
+    {
+      /* code */
+      //丢弃不稳定的电压值
+      uint8_t voltage = getBatteryLevel();
+     //打印电压值
+      Serial_Printf("voltage = %d\r\n", voltage);
+      //延时100ms
+      HAL_Delay(200);
+
+    }
 
 
     
@@ -260,6 +290,11 @@ int main(void)
   while (1)
   {	
 
+    
+    
+
+    
+
     /****** 事件循环 -begin ******/
 
     //长按关机
@@ -270,10 +305,13 @@ int main(void)
       SYSTEM_PowerOff(POWER_OFF_TIMER);
     }
 
-    float angle = getCompassAngle();  
-    angle = 225;
-    //保存当前指南针向方位编码
+    /*业务需求-3、财神位转动*/
+    //财神位转动算法 -begin 
+  float angle = getCompassAngle();  
+  // angle = 225;
+  //保存当前指南针向方位编码
    house_rotate.Current_dir = getCompassDirection();
+   house_rotate.Current_dir = 1;
 
    Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
@@ -288,10 +326,19 @@ int main(void)
       {
         target_angle = 360 + target_angle;
       }
+      target_angle = 360 - target_angle;  //反向
       MOTOR_RotateToAngle(target_angle);
       Serial_Printf("target_angle = %f\r\n", target_angle);
-       //旋转完成后，将目标方向设为0
-   }
+    }
+
+    //财神位转动算法 -end
+
+
+
+
+    DeviceInfo_CycleSend();//周期性监测设备信息
+
+
 
 
     HAL_Delay(1000);

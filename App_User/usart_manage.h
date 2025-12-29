@@ -31,4 +31,7 @@ void Serial_SendHexCmd(uint8_t *data, uint16_t len);
 //串口命令处理函数
 void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len);
 
+//设备信息循环检测发送接口
+void DeviceInfo_CycleSend(void);
+
 #endif

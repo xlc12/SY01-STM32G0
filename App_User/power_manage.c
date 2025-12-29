@@ -1,5 +1,10 @@
 #include "power_manage.h"
 
+
+
+
+
+
 //关机接口
 void SYSTEM_PowerOff(int delay_ms)
 {
@@ -51,5 +56,20 @@ uint8_t getChargingStatus(void)
 {
     /* 实现充电状态检测功能 */
     /* 充电中（读取PA11）；充电完成（读取PC6）；禁止充电（设置PA8电平） */
-    return 0;
+    static uint8_t charging_status = 0;//发送标志位，1充电中POWER_CHARGING_STATUS，2充电完成POWER_FULL_STATUS
+
+    if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11) == 0) //充电中
+    {
+        
+        charging_status = POWER_CHARGING_STATUS;
+       
+    }
+
+    if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == 0) //充电完成
+    {
+        charging_status = POWER_FULL_STATUS;
+    }
+    return charging_status;
 }
+
+

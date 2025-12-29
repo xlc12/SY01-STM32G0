@@ -36,12 +36,7 @@
 #define MOTOR_PIN_BIN1 GPIO_PIN_4   // BIN1 -> GPIOB_4
 #define MOTOR_PIN_BIN2 GPIO_PIN_5   // BIN2 -> GPIOB_5
 
-// ************************* 电机状态定义 *************************
-typedef enum {
-    STEP_MOTOR_STOP = 0,  // 停止状态
-    STEP_MOTOR_FORWARD,   // 正转状态
-    STEP_MOTOR_REVERSE    // 反转状态
-} StepMotor_StateTypeDef;
+
 
 // ************************* 函数声明 *************************
 /**

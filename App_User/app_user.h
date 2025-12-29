@@ -28,9 +28,30 @@
 
 #define POWER_OFF_TIMER 3000 //关机延时时间--2s
 
+//充电中状态
+#define POWER_CHARGING_STATUS 0x01
+//充满状态
+#define POWER_FULL_STATUS 0x02
+
+
+
 
 //开机转到初始角度
 #define INITIAL_ANGLE 5//定义转盘初始位角度，根据实际测试马嘴对着按键的位置来确定 不能小于5度
+
+
+
+
+
+// ************************* 电机状态定义 *************************
+typedef enum {
+    STEP_MOTOR_STOP = 0,  // 停止状态
+    STEP_MOTOR_FORWARD,   // 正转状态
+    STEP_MOTOR_REVERSE    // 反转状态
+} StepMotor_StateTypeDef;
+
+
+
 
 //财神位旋转结构体定义：
 typedef struct  
@@ -77,10 +98,8 @@ extern HouseRotateStruct house_rotate;
 4、设置速度：1000-5000us
 5、接收旋转目标方位
 6、接收磁力计校准角度
-7、接收心跳：返回设备信息：电量、转盘角度、电机状态
+7、接收心跳：返回设备信息：电量、转盘角度、磁力计角度、电机状态
 8、关机
-
-
 */
 //电机一直转命令
 #define USART_CMD_MOTOR_RUN_CONTINUOUS 0x01
@@ -116,7 +135,8 @@ extern HouseRotateStruct house_rotate;
 #define USART_S_CMD_FULL 0x0A3
 //按键次数上报命令
 #define USART_S_CMD_KEY_COUNT 0x0A4
-
+//磁力计方向上报命令
+#define USART_S_CMD_COMPASS_ANGLE 0x0A5
 
 
 

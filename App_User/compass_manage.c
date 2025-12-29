@@ -23,6 +23,7 @@ float getCompassAngle()
 uint8_t getCompassDirection ()
 {
     float azimuth = getCompassAngle();
+    // azimuth=225;
     uint8_t direction = 0;
     if (azimuth >= 337.5 || azimuth < 22.5)
     {

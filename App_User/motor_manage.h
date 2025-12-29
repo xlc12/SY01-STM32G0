@@ -23,6 +23,9 @@
 #include "key_manage.h"
 #include "step_motor.h"
 
+#include "app_user.h"
+
+
 
 //电机类型枚举，直流电机、步进电机、
 typedef enum {
@@ -40,8 +43,17 @@ void MOTOR_SetDirection(StepMotor_StateTypeDef state);
 // 电机转动到指定角度
 void MOTOR_RotateToAngle(int angle);
 
+// 电机停止转动
+void MOTOR_Stop(void);
+
+
+
 // 获取电机当前状态
 uint8_t getMOTOR_State();
+
+
+//关机左右摇摆动作
+void MOTOR_PowerOff(void);
 
 
 /************************* PID控制相关定义 -begin *************************/
@@ -68,6 +80,7 @@ typedef struct {
 
 // 获取电机（转盘）当前角度
 float getTurntableAngle();
+
 
 // PID控制器初始化
 void PID_Init(PID_ControllerTypeDef *pid, float Kp, float Ki, float Kd, float min_output, float max_output);
