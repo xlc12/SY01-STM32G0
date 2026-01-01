@@ -6,10 +6,14 @@ static float target_angle = 0.0f;        // 目标角度
 static float angle_tolerance = 1.0f;     // 角度容忍度（默认1度）
 static bool pid_control_active = false;  // PID控制激活标志
 
+//电机类型定义
+Enum_Motor_TypeTypeDef motor_type = MOTOR_TYPE_STEP;
+// Enum_Motor_TypeTypeDef motor_type = MOTOR_TYPE_DC;
+
 void MOTOR_Init(void )
 {
     //初始化电机
-   StepMotor_Init();
+    StepMotor_Init();
     
     // 初始化PID控制器（参数可根据实际情况调整）
     PID_Init(&motor_pid, PID_KP, PID_KI, PID_KD, -10.0f, 10.0f);
@@ -18,8 +22,15 @@ void MOTOR_Init(void )
 // 电机正反转，-一直转动STEP_MOTOR_FORWARD:1 ; STEP_MOTOR_REVERSE:2
 void MOTOR_SetDirection(StepMotor_StateTypeDef state) 
 {
+    if(motor_type == MOTOR_TYPE_STEP)
+    {
+        StepMotor_RunContinuously(state);
+    }
+    else if(motor_type == MOTOR_TYPE_DC)
+    {
+        DC_Motor_SetDirection(state);
+    }
     
-    StepMotor_RunContinuously(state);
 }
 
 //电机转动到指定步数
@@ -39,11 +50,18 @@ void MOTOR_RotateToAngle(int angle)
 // 电机停止转动
 void MOTOR_Stop(void)
 {
-    StepMotor_Stop();
+    if(motor_type == MOTOR_TYPE_STEP)
+    {
+        StepMotor_Stop();
+    }
+    else if(motor_type == MOTOR_TYPE_DC)
+    {
+        DC_Motor_Stop();
+    }
 }
 
 
-// 获取电机当前状态
+// 获 取电机当前状态
 uint8_t getMOTOR_State() 
 {
     return StepMotor_GetState();
@@ -174,12 +192,12 @@ bool MOTOR_UpdatePIDControl(void)
     if (pid_output > 0)
     {
         // 反转
-        StepMotor_RunContinuously(STEP_MOTOR_REVERSE);
+        MOTOR_SetDirection(STEP_MOTOR_REVERSE);
     }
     else if (pid_output < 0)
     {
         // 正转
-        StepMotor_RunContinuously(STEP_MOTOR_FORWARD);
+        MOTOR_SetDirection(STEP_MOTOR_FORWARD);
         
     }
     else

@@ -50,6 +50,12 @@ typedef enum {
     STEP_MOTOR_REVERSE    // 反转状态
 } StepMotor_StateTypeDef;
 
+//电机类型枚举，直流电机、步进电机、
+typedef enum {
+    MOTOR_TYPE_DC = 0,        // 直流电机
+    MOTOR_TYPE_STEP,          // 步进电机
+} Enum_Motor_TypeTypeDef;
+
 
 
 
@@ -72,7 +78,7 @@ extern HouseRotateStruct house_rotate;
 #define STEPS_PER_CIRCLE (360.0f / STEP_ANGLE * REDUCTION_RATIO)  // 转一圈所需步数
 
 //电机速度配置
-#define DEFAULT_SPEED_MS 1500 // 默认速度（ms）
+#define DEFAULT_SPEED_MS 2000 // 默认速度（us）
 #define MIN_SPEED_MS     1000 // 最快速度（ms）
 #define MAX_SPEED_MS     5000 // 最慢速度（ms）
 

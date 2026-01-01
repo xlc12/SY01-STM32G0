@@ -78,4 +78,18 @@ StepMotor_StateTypeDef StepMotor_GetState(void);
  */
 void StepMotor_TimerIRQHandler(void);
 
+
+
+// ************************* 直流电机控制 *************************
+/**
+ * @brief  直流电机停止
+ */
+void DC_Motor_Stop(void);
+
+/**
+ * @brief  直流电机正反转
+ * @param  dir: 方向选择（STEP_MOTOR_FORWARD-正转，STEP_MOTOR_REVERSE-反转）
+ */
+void DC_Motor_SetDirection(StepMotor_StateTypeDef dir);
+
 #endif /* __STEP_MOTOR_H */

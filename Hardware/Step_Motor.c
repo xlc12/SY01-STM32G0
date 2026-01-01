@@ -96,7 +96,7 @@ void StepMotor_Stop(void)
   HAL_TIM_Base_Stop_IT(&htim3);
   
   // 关闭所有电机相位
-  StepMotor_SetPhase((uint8_t[]){0, 0, 0, 0});
+  StepMotor_SetPhase((uint8_t[]){1, 1, 1, 1});
   
   // 更新状态
   g_motor_state = STEP_MOTOR_STOP;
@@ -203,5 +203,28 @@ void StepMotor_TimerIRQHandler(void)
     {
       StepMotor_Stop();
     }
+  }
+}
+
+
+
+
+
+/****************** 直流电机控制 ******************/
+void DC_Motor_Stop(void)
+{
+  StepMotor_SetPhase((uint8_t[]){1, 1, 1, 1});
+}
+
+//正反转
+void DC_Motor_SetDirection(StepMotor_StateTypeDef dir)
+{
+  if(dir == STEP_MOTOR_FORWARD)
+  {
+    StepMotor_SetPhase((uint8_t[]){0, 1, 1, 1});
+  }
+  else if(dir == STEP_MOTOR_REVERSE)
+  {
+    StepMotor_SetPhase((uint8_t[]){1, 0, 1, 1});
   }
 }

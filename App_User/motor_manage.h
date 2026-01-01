@@ -27,11 +27,7 @@
 
 
 
-//电机类型枚举，直流电机、步进电机、
-typedef enum {
-    MOTOR_TYPE_DC = 0,        // 直流电机
-    MOTOR_TYPE_STEP,          // 步进电机
-} Enum_Motor_TypeTypeDef;
+
 
 
 // 电机初始化
