@@ -5,7 +5,6 @@
 
 #define QMC5883_DEV (0x58)   //i2c地址
 
-
 /*********************************************************************/
 #define QMC5883L_REG_CONF1 0x09     //模式控制寄存器地址
 // MOD模式（0x09的第0、1位）
@@ -38,13 +37,22 @@
 #define CONF2 QMC5883L_INT_ENB | QMC5883L_ROL_PNT |QMC5883L_SOFT_RST       //数据拼接
 /*********************************************************************/
 
+// 校准相关配置
+#define CALIBRATION_TIME 10000U  // 校准时间：10秒（单位：毫秒）
+#define CALIBRATION_INTERVAL 10U // 采集间隔：10毫秒（单位：毫秒）
+
+// 全局校准偏移量（供外部调用）
+extern int16_t QMC_Offset_X;
+extern int16_t QMC_Offset_Y;
+extern int16_t QMC_Offset_Z;
+
 uint8_t QMC5883_Init();//初始化
 uint8_t QMC5883_GetData(int16_t *QMC_data);//读数据
 void qmc5883l_filter(void);
 void qmc_set_dir_code(void);
 void Get_QMC5883P_Data(void);
-
-
+void qmc5883l_filter(void);//组合滤波
+void QMC5883_Calibrate(void);// 椭圆校准函数（自动校准）
 /*********************************************************************/
 
 #define printf

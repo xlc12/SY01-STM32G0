@@ -253,10 +253,14 @@ int main(void)
     /*业务需求-1、按键事件*/
     Key_Register_Event_Callback(Key_Event_Callback);
 
-     // 步进电机初始化
+    // 步进电机初始化
      
      MOTOR_Init();
     //  MOTOR_SetDirection(STEP_MOTOR_FORWARD);
+
+
+    QMC_IIC_Init();
+    QMC5883_Init();
     
 
     //串口命令回调函数注册
@@ -265,6 +269,8 @@ int main(void)
 
     //开机回到初始位  --*功能需求 3*--
     MOTOR_RotateToAngle(INITIAL_ANGLE);
+     // 上电自动执行椭圆校准（10秒）
+  QMC5883_Calibrate();
 
     //待ADC采集稳定
     isBatteryVoltageStable();
@@ -304,7 +310,7 @@ int main(void)
     // angle = 225;
     //保存当前指南针向方位编码
     house_rotate.Current_dir = getCompassDirection();
-    house_rotate.Current_dir = 1;
+    // house_rotate.Current_dir = 1;
 
     Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
