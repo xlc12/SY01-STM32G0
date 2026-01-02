@@ -30,14 +30,16 @@
 
 //充电中状态
 #define POWER_CHARGING_STATUS 0x01
+//取消充电状态
+#define CHARGING_CANCEL_STATUS 0x02
 //充满状态
-#define POWER_FULL_STATUS 0x02
+#define POWER_FULL_STATUS 0x03
 
 
 
 
 //开机转到初始角度
-#define INITIAL_ANGLE 5//定义转盘初始位角度，根据实际测试马嘴对着按键的位置来确定 不能小于5度
+#define INITIAL_ANGLE 0//定义转盘初始位角度，根据实际测试马嘴对着按键的位置来确定 不能小于5度
 
 
 

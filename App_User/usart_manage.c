@@ -76,11 +76,10 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
 
 typedef struct 
 {
-    //电压稳定标志位
-    uint8_t voltage_stable_flag;
-    uint8_t low_battery_reported_flag;
-    uint8_t charging_reported_flag;
-    uint8_t full_reported_flag;
+    //电池电量标志
+    uint8_t ChaBattery_Level_Statusrging_Status;
+    //充电状态标志
+    uint8_t Charging_Status;
 }DeviceInfo_Report_t;
 
 
@@ -90,7 +89,7 @@ typedef struct
 //设备信息循环检测发送接口
 void DeviceInfo_CycleSend(void)
 {
-    static DeviceInfo_Report_t deviceInfo_Report = {0,0,0};
+    static DeviceInfo_Report_t deviceInfo_Report = {0};
     
     
     static uint8_t last_battery_level = 0;
@@ -110,38 +109,58 @@ void DeviceInfo_CycleSend(void)
 
     
     //低电压上报
-    if ( battery_level < 20 && deviceInfo_Report.low_battery_reported_flag == 0)
+    if ( battery_level < 20 && deviceInfo_Report.ChaBattery_Level_Statusrging_Status == 0)
     {
-        
-        deviceInfo_Report.low_battery_reported_flag = 1;
+        deviceInfo_Report.ChaBattery_Level_Statusrging_Status = 1;
         // 电量低，发送提示信息
         uint8_t low_battery[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_LOW_BATTERY, battery_level, USART_CMD_TAIL};
 
         Serial_SendHexCmd(low_battery, sizeof(low_battery));
-    }else if ( battery_level >= 20 && deviceInfo_Report.low_battery_reported_flag == 1)
+    }else if ( battery_level >= 20 && deviceInfo_Report.ChaBattery_Level_Statusrging_Status == 1)
     {
-
-        deviceInfo_Report.low_battery_reported_flag = 0;
-
+        deviceInfo_Report.ChaBattery_Level_Statusrging_Status = 0;
     }
 
+
     //充电状态上报
-    uint8_t charging_status = getChargingStatus();
-    if ( charging_status == POWER_CHARGING_STATUS && deviceInfo_Report.charging_reported_flag == 0)
+    uint8_t charg_status = getChargingStatus();
+    // Serial_Printf("1111111 Charging_Status = %d\r\n", charg_status);
+    if(charg_status == deviceInfo_Report.Charging_Status)
     {
-        deviceInfo_Report.charging_reported_flag = 1;
+        Serial_Printf("2222222 Charging_Status not change\r\n");
+        return;
+    }
+    //充电中上报
+    if ( charg_status == POWER_CHARGING_STATUS)
+    {
+        deviceInfo_Report.Charging_Status = POWER_CHARGING_STATUS;
+        Serial_Printf("3333333 Charging_Status = %d\r\n", charg_status);
         // 充电中，发送提示信息
-        uint8_t charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_CHARGE, charging_status, USART_CMD_TAIL};
+        uint8_t charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
         Serial_SendHexCmd(charging, sizeof(charging));
     }
     
-    if ( charging_status == POWER_FULL_STATUS && deviceInfo_Report.full_reported_flag == 0)
+    //充电完成上报
+    if ( charg_status == POWER_FULL_STATUS)
     {
-        deviceInfo_Report.full_reported_flag = 1;
+        Serial_Printf("4444444 Charging_Status = %d\r\n", charg_status);
+        deviceInfo_Report.Charging_Status = POWER_FULL_STATUS;
         // 充电完成，发送提示信息
-        uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_FULL, charging_status, USART_CMD_TAIL};
+        uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_FULL, charg_status, USART_CMD_TAIL};
         Serial_SendHexCmd(full, sizeof(full));
     }
+
+    //取消充电上报
+    if ( charg_status == CHARGING_CANCEL_STATUS)
+    {
+        Serial_Printf("5555555 Charging_Status = %d\r\n", charg_status);
+        deviceInfo_Report.Charging_Status = CHARGING_CANCEL_STATUS;
+        // 取消充电，发送提示信息
+        // uint8_t not_charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, CHARGING_CANCEL_STATUS, Charging_Status, USART_CMD_TAIL};
+        // Serial_SendHexCmd(not_charging, sizeof(not_charging));
+    }
+
+    Serial_Printf("6666666 Charging_Status = %d\r\n", deviceInfo_Report.Charging_Status);
 
 
 }

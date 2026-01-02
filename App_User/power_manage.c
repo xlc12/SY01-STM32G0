@@ -80,15 +80,20 @@ uint8_t getChargingStatus(void)
 
     if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11) == 0) //充电中
     {
-        
         charging_status = POWER_CHARGING_STATUS;
-       
     }
 
     if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == 0) //充电完成
     {
         charging_status = POWER_FULL_STATUS;
     }
+
+    //取消充电
+    if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11) == 1 && HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == 1) //禁止充电
+    {
+        charging_status = CHARGING_CANCEL_STATUS;
+    }
+    
     return charging_status;
 }
 
