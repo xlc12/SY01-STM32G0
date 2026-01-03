@@ -245,7 +245,7 @@ int main(void)
     TIM3_SetInterruptTime(1); //设置TIM3为1000ms中断
 
 
-
+    Serial_Printf("66666666666main start\r\n");
 
     // 按键初始化
     Key_HW_Init();
@@ -270,7 +270,8 @@ int main(void)
     //开机回到初始位  --*功能需求 3*--
     MOTOR_RotateToAngle(INITIAL_ANGLE);
      // 上电自动执行椭圆校准（10秒）
-  QMC5883_Calibrate();
+//  QMC5883_Calibrate();
+// getTurntableAdcMaxMinValue();
 
     //待ADC采集稳定
     isBatteryVoltageStable();
@@ -289,6 +290,16 @@ int main(void)
   
   while (1)
   {	
+
+    /************** 测试用代码 -begin **************/
+    //获取转盘角度
+    float turntableAngle = 0;
+    turntableAngle = getTurntableAdcConvertToAngle();
+   
+    // Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
+
+    /************** 测试用代码 -end **************/
+
 
     /****** 事件循环 -begin ******/
 
@@ -312,7 +323,7 @@ int main(void)
     house_rotate.Current_dir = getCompassDirection();
     // house_rotate.Current_dir = 1;
 
-    Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+    // Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
     if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
     {
@@ -341,7 +352,7 @@ int main(void)
 
 
 
-    HAL_Delay(1000);
+    HAL_Delay(500);
 
 
     /****** 事件循环 -end ******/

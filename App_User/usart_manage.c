@@ -47,15 +47,28 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
 
         //接收磁力计校准角度命令
         case USART_CMD_CALIBRATION_ANGLE:
+            QMC5883_Calibrate();
             
             break;
 
         //接收接收心跳命令  //返回设备信息：电量、转盘角度、磁力计角度、电机状态（待定）
         case USART_CMD_HEARTBEAT:
             // Serial_Printf("USART_CMD_HEARTBEAT\r\n");
-
+            //打印心跳数据
+            // Serial_Printf("USART_CMD_HEARTBEAT: %d, %d, %d, %d\r\n", 
+            //     getBatteryLevel(),
+            //     (uint16_t)getTurntableAngle(),
+            //     (uint16_t)getCompassAngle(),
+            //     getCompassDirection());
             //构建心跳数据包
-            uint8_t heartbeat[10] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_HEARTBEAT, getBatteryLevel(), getTurntableAngle(), getCompassDirection(), USART_CMD_TAIL};
+            uint8_t heartbeat[] = {
+                USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_HEARTBEAT,
+                getBatteryLevel(),
+                (uint8_t)((uint16_t)getTurntableAngle() / 2),    // 0-360映射到0-180
+                (uint8_t)((uint16_t)getCompassAngle() / 2),      // 0-360映射到0-180
+                getCompassDirection(),
+                USART_CMD_TAIL
+            };
             Serial_SendHexCmd(heartbeat, sizeof(heartbeat));
             break;
         
@@ -127,14 +140,14 @@ void DeviceInfo_CycleSend(void)
     // Serial_Printf("1111111 Charging_Status = %d\r\n", charg_status);
     if(charg_status == deviceInfo_Report.Charging_Status)
     {
-        Serial_Printf("2222222 Charging_Status not change\r\n");
+        // Serial_Printf("2222222 Charging_Status not change\r\n");
         return;
     }
     //充电中上报
     if ( charg_status == POWER_CHARGING_STATUS)
     {
         deviceInfo_Report.Charging_Status = POWER_CHARGING_STATUS;
-        Serial_Printf("3333333 Charging_Status = %d\r\n", charg_status);
+        // Serial_Printf("3333333 Charging_Status = %d\r\n", charg_status);
         // 充电中，发送提示信息
         uint8_t charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
         Serial_SendHexCmd(charging, sizeof(charging));
@@ -143,7 +156,7 @@ void DeviceInfo_CycleSend(void)
     //充电完成上报
     if ( charg_status == POWER_FULL_STATUS)
     {
-        Serial_Printf("4444444 Charging_Status = %d\r\n", charg_status);
+        // Serial_Printf("4444444 Charging_Status = %d\r\n", charg_status);
         deviceInfo_Report.Charging_Status = POWER_FULL_STATUS;
         // 充电完成，发送提示信息
         uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_FULL, charg_status, USART_CMD_TAIL};
@@ -153,14 +166,14 @@ void DeviceInfo_CycleSend(void)
     //取消充电上报
     if ( charg_status == CHARGING_CANCEL_STATUS)
     {
-        Serial_Printf("5555555 Charging_Status = %d\r\n", charg_status);
+        // Serial_Printf("5555555 Charging_Status = %d\r\n", charg_status);
         deviceInfo_Report.Charging_Status = CHARGING_CANCEL_STATUS;
         // 取消充电，发送提示信息
         // uint8_t not_charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, CHARGING_CANCEL_STATUS, Charging_Status, USART_CMD_TAIL};
         // Serial_SendHexCmd(not_charging, sizeof(not_charging));
     }
 
-    Serial_Printf("6666666 Charging_Status = %d\r\n", deviceInfo_Report.Charging_Status);
+    // Serial_Printf("6666666 Charging_Status = %d\r\n", deviceInfo_Report.Charging_Status);
 
 
 }
