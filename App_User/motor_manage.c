@@ -6,6 +6,13 @@ static float target_angle = 0.0f;        // 目标角度
 static float angle_tolerance = 1.0f;     // 角度容忍度（默认1度）
 static bool pid_control_active = false;  // PID控制激活标志
 
+uint16_t adc_max = 0;
+uint16_t adc_min = 0;
+
+//ADC值限制在80-4090,角度范围0-360
+#define ADC_MIN_LIMIT 80
+#define ADC_MAX_LIMIT 4090
+
 //电机类型定义
 Enum_Motor_TypeTypeDef motor_type = MOTOR_TYPE_STEP;
 // Enum_Motor_TypeTypeDef motor_type = MOTOR_TYPE_DC;
@@ -58,6 +65,7 @@ void MOTOR_Stop(void)
     {
         DC_Motor_Stop();
     }
+    pid_control_active = false;  // 关闭PID控制
 }
 
 
@@ -73,6 +81,44 @@ float getTurntableAngle()
 {
     return ADC_PB1_ConvertToAngle();
 }
+
+
+//将ADC值转换为角度,ADC值限制在80-4090,角度范围0-360
+float getTurntableAdcConvertToAngle(void)
+{
+    float angle = 0.0f;
+    uint16_t adc_raw = ADC_PB1_ReadRawValue();
+    // 计算ADC值的最大最小值,限制在80-4090
+    if(adc_raw > ADC_MAX_LIMIT)
+    {
+        adc_raw = ADC_MAX_LIMIT;
+    }
+    if(adc_raw < ADC_MIN_LIMIT)
+    {
+        adc_raw = ADC_MIN_LIMIT;
+    }
+    // 映射ADC值到角度范围0-360
+    angle = (float)(adc_raw - ADC_MIN_LIMIT) / (float)(ADC_MAX_LIMIT - ADC_MIN_LIMIT) * 360.0f;
+    // 将角度值限制在0-360之间
+    if(angle < 0.0f)
+    {
+        angle += 360.0f;
+    }
+    else if(angle >= 360.0f)
+    {
+        angle -= 360.0f;
+    }
+   
+    return angle;
+}
+
+//开机转一圈获取ADC最大最小值
+void getTurntableAdcMaxMinValue(void)
+{
+    
+    Serial_Printf("adc_max = %d, adc_min = %d\r\n", adc_max, adc_min);
+}
+
 
 
 //关机动作
@@ -172,7 +218,8 @@ bool MOTOR_UpdatePIDControl(void)
     }
     
     // 获取当前角度
-    float current_angle = getTurntableAngle();
+    // float current_angle = getTurntableAngle();
+    float current_angle = getTurntableAdcConvertToAngle();
     
     // 计算角度偏差
     float angle_error = fabs(target_angle - current_angle);

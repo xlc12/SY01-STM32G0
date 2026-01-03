@@ -1,7 +1,7 @@
 #include "my_adc.h"
 #include "main.h"
 #include <stdio.h>
-
+#include "My_USART.h"
 float ADC_Hourse;//马儿角度
 
 /**
@@ -102,6 +102,7 @@ uint16_t ADC_PB1_ReadRawValue(void)
 float ADC_PB1_ConvertToAngle(void)
 {
   uint16_t adc_raw = ADC_PB1_ReadRawValue();
+  
   // 线性转换公式：角度 = (ADC值 / ADC最大值) * 目标角度最大值
   float angle = (adc_raw / ADC_RESOLUTION) * 360.0f;
 

@@ -6,8 +6,8 @@
 
 
 
-// 正转序列表：A+相→B+相→A-相→B-相
-static const uint8_t forward_seq[4][4] =
+// 反转序列表：A+相→B+相→A-相→B-相
+static const uint8_t reverse_seq[4][4] =
 {
   {1, 0, 0, 0}, // A+相
   {0, 0, 1, 0}, // B+相
@@ -15,8 +15,8 @@ static const uint8_t forward_seq[4][4] =
   {0, 0, 0, 1}  // B-相
 };
 
-// 反转序列表：与正转相反
-static const uint8_t reverse_seq[4][4] =
+// 正转序列表：与正转相反
+static const uint8_t forward_seq[4][4] =
 {
   {0, 0, 0, 1}, // B-相
   {0, 1, 0, 0}, // A-相

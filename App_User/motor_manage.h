@@ -72,10 +72,14 @@ typedef struct {
 
 
 
-// ********** PID函数声明 **********
+/********** PID函数声明 **********/
 
 // 获取电机（转盘）当前角度
 float getTurntableAngle();
+//将ADC值转换为角度
+float getTurntableAdcConvertToAngle(void);
+//开机转一圈获取ADC最大最小值
+void getTurntableAdcMaxMinValue(void);
 
 
 // PID控制器初始化
