@@ -80,7 +80,7 @@ extern HouseRotateStruct house_rotate;
 #define STEPS_PER_CIRCLE (360.0f / STEP_ANGLE * REDUCTION_RATIO)  // 转一圈所需步数
 
 //电机速度配置
-#define DEFAULT_SPEED_MS 2000 // 默认速度（us）
+#define DEFAULT_SPEED_MS 1500 // 默认速度（us）
 #define MIN_SPEED_MS     1000 // 最快速度（ms）
 #define MAX_SPEED_MS     5000 // 最慢速度（ms）
 
@@ -139,14 +139,16 @@ extern HouseRotateStruct house_rotate;
 #define USART_S_CMD_LOW_BATTERY 0x0A1
 //充电提示上报命令
 #define USART_S_CMD_CHARGE 0x0A2
-//充满提示上报命令
-#define USART_S_CMD_FULL 0x0A3
+//充满提示上报命令，用USART_S_CMD_CHARGE代替，数据为1表示充电中，数据为2表示拔掉充电器，数据为3表示充满
+// #define USART_S_CMD_FULL 0x0A3
 //按键次数上报命令
 #define USART_S_CMD_KEY_COUNT 0x0A4
 //磁力计方向上报命令
 #define USART_S_CMD_COMPASS_ANGLE 0x0A5
 //心跳上报命令 //返回设备信息：电量、转盘角度、磁力计角度、电机状态
 #define USART_S_CMD_HEARTBEAT 0x0A6
+//开始磁力计校准命令，数据00为开始，01为结束
+#define USART_S_CMD_CALIBRATION_ANGLE 0x0A7
 
 
 

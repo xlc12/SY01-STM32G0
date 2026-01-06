@@ -48,6 +48,8 @@
 
 #include "usart_manage.h"
 
+#include "my_flash.h"
+
 
 /* USER CODE END Includes */
 
@@ -82,6 +84,8 @@ extern uint8_t PID_Start;//运行pid控制标志位
 
 uint8_t isPowerOff_flag = 0; //关机标志位
 HouseRotateStruct house_rotate = {0};
+//校准标志位
+uint8_t isCalibration_flag = 0;
 /************************** 按键监测 应用层：按键事件回调函数 -· **************************/
 //按键监听   --*功能需求 5*--
 static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
@@ -89,7 +93,7 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
   
     
     //按键事件命令构建
-    uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, event, click_cnt, USART_CMD_TAIL};
+    uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_KEY_COUNT, click_cnt, USART_CMD_TAIL};
     Serial_SendHexCmd(cmd, sizeof(cmd));
     
     
@@ -101,6 +105,7 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
             // Serial_Printf("Key Single Click\r\n");
             //回到原位
             MOTOR_RotateToAngle(INITIAL_ANGLE);
+            
             break;
 
         case KEY_EVENT_DOUBLE_CLICK:
@@ -119,6 +124,12 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
               //一直旋转
               MOTOR_SetDirection(STEP_MOTOR_FORWARD);
                 // Serial_Printf("Key Multi Click: %d\r\n", click_cnt);
+            }
+            if(click_cnt == 7)
+            {
+              //校准
+              isCalibration_flag = 1;
+              
             }
             break;
 
@@ -247,6 +258,23 @@ int main(void)
 
     Serial_Printf("66666666666main start\r\n");
 
+
+
+
+    //开机获取flash的数据
+    int32_t Read_Data[3] = {0,0,0};
+    // 读取寄存器值
+     FLASH_ReadInt32(FLASH_START_ADDRESS1,&Read_Data[0]); //上电读取  
+     FLASH_ReadInt32(FLASH_START_ADDRESS2,&Read_Data[1]); //上电读取
+     FLASH_ReadInt32(FLASH_START_ADDRESS3,&Read_Data[2]); //上电读取
+     QMC_Offset_X = Read_Data[0];
+     QMC_Offset_Y = Read_Data[1];
+     QMC_Offset_Z = Read_Data[2];
+     //打印QMC_Offset_X,QMC_Offset_Y,QMC_Offset_Z
+     Serial_Printf("QMC_Offset_X: %d, QMC_Offset_Y: %d, QMC_Offset_Z: %d\r\n", QMC_Offset_X, QMC_Offset_Y, QMC_Offset_Z);
+
+
+
     // 按键初始化
     Key_HW_Init();
     // 注册按键事件回调函数
@@ -283,6 +311,7 @@ int main(void)
 
 
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -312,18 +341,32 @@ int main(void)
     }
 
 
+    //磁力计校准
+    if(isCalibration_flag)
+    {
+      isCalibration_flag = 0;
+      //延时1秒
+      HAL_Delay(100);
+      uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CALIBRATION_ANGLE, 00, USART_CMD_TAIL};
+      Serial_SendHexCmd(cmd, sizeof(cmd));
+      //延时1秒
+      HAL_Delay(100);
+      QMC5883_Calibrate();
+    }
+
 
     
 
     /*业务需求-3、财神位转动*/
     //财神位转动算法 -begin 
+    
     float angle = getCompassAngle();  
     // angle = 225;
     //保存当前指南针向方位编码
     house_rotate.Current_dir = getCompassDirection();
     // house_rotate.Current_dir = 1;
 
-    // Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+    Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
     if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
     {

@@ -25,7 +25,7 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
 
         //转指定角度命令
         case USART_CMD_MOTOR_ROTATE_TO_ANGLE:
-            MOTOR_RotateToAngle(data[0]);
+            MOTOR_RotateToAngle(data[0] * 2);
             break;
         
         //停止电机转动命令
@@ -159,7 +159,7 @@ void DeviceInfo_CycleSend(void)
         // Serial_Printf("4444444 Charging_Status = %d\r\n", charg_status);
         deviceInfo_Report.Charging_Status = POWER_FULL_STATUS;
         // 充电完成，发送提示信息
-        uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_FULL, charg_status, USART_CMD_TAIL};
+        uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
         Serial_SendHexCmd(full, sizeof(full));
     }
 

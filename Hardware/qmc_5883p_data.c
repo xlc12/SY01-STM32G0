@@ -5,6 +5,8 @@
 #include <string.h>  // 用于memcpy
 #include <math.h>
 #include "My_USART.h"
+#include "app_user.h"
+#include "usart_manage.h"
 // 全局校准偏移量（存储三轴硬铁干扰偏移值）
 int16_t QMC_Offset_X = 0;
 int16_t QMC_Offset_Y = 0;
@@ -103,17 +105,21 @@ void QMC5883_Calibrate(void)
             if(raw_data[2] < min_z) min_z = raw_data[2];
         }
         HAL_Delay(CALIBRATION_INTERVAL);  // 采集间隔延迟
+        
     }
 
     
-    Serial_Printf("QMC5883 Calibration Results:\n");
-    Serial_Printf("X: max=%d, min=%d, offset=%d\n", max_x, min_x, QMC_Offset_X);
-    Serial_Printf("Y: max=%d, min=%d, offset=%d\n", max_y, min_y, QMC_Offset_Y);
-    Serial_Printf("Z: max=%d, min=%d, offset=%d\n", max_z, min_z, QMC_Offset_Z);
+    // Serial_Printf("QMC5883 Calibration Results:\n");
+    // Serial_Printf("X: max=%d, min=%d, offset=%d\n", max_x, min_x, QMC_Offset_X);
+    // Serial_Printf("Y: max=%d, min=%d, offset=%d\n", max_y, min_y, QMC_Offset_Y);
+    // Serial_Printf("Z: max=%d, min=%d, offset=%d\n", max_z, min_z, QMC_Offset_Z);
     // 计算三轴偏移量（硬铁校准核心：偏移量 = (最大值 + 最小值) / 2）
     QMC_Offset_X = (max_x + min_x) / 2;
     QMC_Offset_Y = (max_y + min_y) / 2;
     QMC_Offset_Z = (max_z + min_z) / 2;
+
+    uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CALIBRATION_ANGLE, 01, USART_CMD_TAIL};
+    Serial_SendHexCmd(cmd, sizeof(cmd));
 }
 
 /***********************************************************
