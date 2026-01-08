@@ -3,21 +3,21 @@
 extern  float Target_Azimuth; //校准后的最终角度
 
 //标定偏移值
-float Calibration_Offset = 0.0f;
+extern float Calibration_Offset; //校准偏移量
 
 
 
 
 /*
- * @brief: 获取指南针角度
+ * @brief: 获取标定后的指南针角度
  * @param: None
  * @return: uint8_t 指南针角度
  */
 float getCompassAngle()
 {
     
-    Target_Azimuth = Target_Azimuth + Calibration_Offset; //校准后的最终角度
-    return Target_Azimuth ;
+    
+    return Target_Azimuth + Calibration_Offset; //校准后的最终角度 ;
 }
 
 //获取磁力计原始角度

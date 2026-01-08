@@ -76,6 +76,8 @@ typedef struct {
 
 // 获取电机（转盘）当前角度
 float getTurntableAngle();
+//判断是否在初始位置
+bool isTurntableInInitialPosition(void);
 //将ADC值转换为角度
 float getTurntableAdcConvertToAngle(void);
 //开机转一圈获取ADC最大最小值

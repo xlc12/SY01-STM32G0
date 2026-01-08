@@ -97,24 +97,24 @@ float getTurntableAngle()
 }
 
 
-// //判断转盘是否在初始位
-// bool isTurntableInInitialPosition(void)
-// {
-//     float turntableAngle = 0;
+//判断转盘是否在初始位
+bool isTurntableInInitialPosition(void)
+{
+    float turntableAngle = 0;
 
-//     if(getMOTOR_State() != STEP_MOTOR_STOP){
-//         return false;
-//     }
+    if(getMOTOR_State() != STEP_MOTOR_STOP){
+        return false;
+    }
 
-//     turntableAngle = getTurntableAdcConvertToAngle();
-//     //判断turntableAngle的值和初始位置的差值绝对值小于2度，则认为是初始位置，否则不是初始位置
-//     if(turntableAngle < INITIAL_ANGLE + 2 && turntableAngle >  358)
-//     { 
-//       return true;
-//     }
+    turntableAngle = getTurntableAdcConvertToAngle();
+    //判断turntableAngle的值和初始位置的差值绝对值小于2度，则认为是初始位置，否则不是初始位置
+    if(turntableAngle < INITIAL_ANGLE + 2 && turntableAngle >  358)
+    { 
+      return true;
+    }
 
-//     return false;
-// }
+    return false;
+}
 
 
 //将ADC值转换为角度,ADC值限制在80-4090,角度范围0-360

@@ -131,6 +131,7 @@ extern HouseRotateStruct house_rotate;
 
 
 
+
 //串口*发送*命令字定义，
 /*
 1、低电压警告上报

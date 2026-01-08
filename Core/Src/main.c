@@ -92,6 +92,7 @@ uint8_t isInit_flag = 0;
 
 //转回起始位标志
 uint8_t isBackInit_flag = 0;
+float Calibration_Offset = 0.0f; //校准偏移量
 
 
 /************************** 按键监测 应用层：按键事件回调函数 -· **************************/
@@ -353,7 +354,7 @@ int main(void)
     // float turntableAngle = 0;
     // turntableAngle = getTurntableAdcConvertToAngle();
     
-    Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
+    // Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
 
     /************** 测试用代码 -end **************/
 
@@ -372,6 +373,12 @@ int main(void)
     //磁力计校准
     if(isCalibration_flag)
     {
+      // //如果不在初始位，则先回到初始位，再进行校准
+      // if(!isTurntableInInitialPosition())
+      // {
+      //   MOTOR_RotateToAngle(INITIAL_ANGLE);
+      //   return;
+      // }
       isCalibration_flag = 0;
       //延时1秒
       HAL_Delay(100);
@@ -380,6 +387,16 @@ int main(void)
       //延时1秒
       HAL_Delay(1000);
       QMC5883_Calibrate();
+    }
+
+
+    int32_t Read_Calibration_Offset_Data[1] = {0};
+
+    FLASH_ReadInt32(FLASH_START_ADDRESS4,&Read_Calibration_Offset_Data[0]);
+    //更新Calibration_Offset
+    if(Calibration_Offset != Read_Calibration_Offset_Data[0])
+    {
+      Calibration_Offset = Read_Calibration_Offset_Data[0];
     }
 
 
@@ -392,19 +409,21 @@ int main(void)
 
     
     //判断是否回到起始位
-    if (getMOTOR_State() == STEP_MOTOR_STOP)
+    if (getMOTOR_State() == STEP_MOTOR_STOP )
     {
       /* code */
       isBackInit_flag = 0; // 回到起始位结束
       house_rotate.Current_dir = getCompassDirection(); //回到起始位才更新当前磁力计方位
+      
+      Serial_Printf("666666666666666666666666");// 
     }
 
-    
+    // Serial_Printf("Current_dir = %d", house_rotate.Current_dir);// 
     
     
     // house_rotate.Current_dir = 1;
 
-//    Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+   Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
     if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
     {
@@ -420,6 +439,17 @@ int main(void)
           target_angle = 360 + target_angle;
         }
         target_angle = 360 - target_angle;  //反向
+
+        // //判断当前角度是否在目标角度附近，如果在，则不转，如果不在则先回到初始位，再转到目标角度
+        // if(abs(target_angle - getTurntableAngle()) < 2)
+        // {
+        //   continue;
+        // }
+        //先回到初始位
+        MOTOR_RotateToAngle(INITIAL_ANGLE);
+        //延时1秒
+        HAL_Delay(1000);
+        //再转到目标角度
         MOTOR_RotateToAngle(target_angle);
         Serial_Printf("target_angle = %f\r\n", target_angle);
       }

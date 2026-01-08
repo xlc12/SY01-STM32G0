@@ -1,10 +1,13 @@
 #include "usart_manage.h"
+#include "my_flash.h"
 
 extern uint8_t houseRotateTargetPoint_dir;   //目标指向方位编码（0x01-0x08）
 extern uint8_t isPowerOff_flag;
 extern HouseRotateStruct house_rotate;
 extern float Calibration_Offset; //校准偏移量
 extern  float Target_Azimuth; //校准后的最终角度
+
+extern uint8_t isCalibration_flag;
 
 // 串口发送命令
 void Serial_SendHexCmd(uint8_t *data, uint16_t len)
@@ -51,7 +54,10 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
 
         //接收磁力计校准角度命令
         case USART_CMD_CALIBRATION_ANGLE:
-            QMC5883_Calibrate();
+            // QMC5883_Calibrate();
+            //校准
+            isCalibration_flag = 1;
+            break;
             
             break;
 
@@ -80,8 +86,17 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
         //底盘端接收也需要乘2，因为实际角度是0-360，而串口只能发送0-255
         //
         case USART_CMD_CALIBRATION_DIR:
-            Calibration_Offset = data[0] * 2 - Target_Azimuth; //计算偏移量
+            Calibration_Offset = data[0] * 2 - getCompassAngle_Raw(); //计算偏移量
+            //保存到flash
+            FLASH_ErasePage(FLASH_START_ADDRESS4);
+            FLASH_WriteInt32(FLASH_START_ADDRESS4,(int32_t)(Calibration_Offset));
+           
+            
+            
             break;
+
+    
+            
         
         //关机
         case USART_CMD_SHUTDOWN:
