@@ -1145,6 +1145,11 @@
               <FileType>5</FileType>
               <FilePath>..\Hardware\Control.h</FilePath>
             </File>
+            <File>
+              <FileName>My_Flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\My_Flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

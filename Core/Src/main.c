@@ -86,6 +86,14 @@ uint8_t isPowerOff_flag = 0; //关机标志位
 HouseRotateStruct house_rotate = {0};
 //校准标志位
 uint8_t isCalibration_flag = 0;
+
+//初始化完成标志位
+uint8_t isInit_flag = 0;
+
+//转回起始位标志
+uint8_t isBackInit_flag = 0;
+
+
 /************************** 按键监测 应用层：按键事件回调函数 -· **************************/
 //按键监听   --*功能需求 5*--
 static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
@@ -112,7 +120,11 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
             // 双击业务逻辑
             // Serial_Printf("Key Double Click\r\n");
             //停止旋转
-             MOTOR_Stop();
+            if(isInit_flag == 1)
+            {
+              MOTOR_Stop();
+            }
+             
             break;
 
         case KEY_EVENT_MULTI_CLICK:
@@ -297,12 +309,28 @@ int main(void)
 
     //开机回到初始位  --*功能需求 3*--
     MOTOR_RotateToAngle(INITIAL_ANGLE);
+    // HAL_Delay(100);
      // 上电自动执行椭圆校准（10秒）
 //  QMC5883_Calibrate();
 // getTurntableAdcMaxMinValue();
 
-    //待ADC采集稳定
-    isBatteryVoltageStable();
+  //待ADC采集稳定
+  isBatteryVoltageStable(); //有延时操作
+
+
+  //电机
+  while (getMOTOR_State() != STEP_MOTOR_STOP)  
+  {
+   
+    
+  }
+   //延时
+   HAL_Delay(1000);
+   house_rotate.Current_dir = getCompassDirection();
+
+  isInit_flag = 1;
+
+    
 
    
     
@@ -322,10 +350,10 @@ int main(void)
 
     /************** 测试用代码 -begin **************/
     //获取转盘角度
-    float turntableAngle = 0;
-    turntableAngle = getTurntableAdcConvertToAngle();
-   
-    // Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
+    // float turntableAngle = 0;
+    // turntableAngle = getTurntableAdcConvertToAngle();
+    
+    Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
 
     /************** 测试用代码 -end **************/
 
@@ -350,7 +378,7 @@ int main(void)
       uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CALIBRATION_ANGLE, 00, USART_CMD_TAIL};
       Serial_SendHexCmd(cmd, sizeof(cmd));
       //延时1秒
-      HAL_Delay(100);
+      HAL_Delay(1000);
       QMC5883_Calibrate();
     }
 
@@ -361,17 +389,29 @@ int main(void)
     //财神位转动算法 -begin 
     
     float angle = getCompassAngle();  
-    // angle = 225;
-    //保存当前指南针向方位编码
-    house_rotate.Current_dir = getCompassDirection();
+
+    
+    //判断是否回到起始位
+    if (getMOTOR_State() == STEP_MOTOR_STOP)
+    {
+      /* code */
+      isBackInit_flag = 0; // 回到起始位结束
+      house_rotate.Current_dir = getCompassDirection(); //回到起始位才更新当前磁力计方位
+    }
+
+    
+    
+    
     // house_rotate.Current_dir = 1;
 
-    Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+//    Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
     if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
     {
       int target_dir = house_rotate.Target_dir;
+
       house_rotate.Target_dir = 0; //旋转完成后，将目标方向设为0
+
         //计算目标角度
         float target_angle = (target_dir-house_rotate.Current_dir) * 45 + INITIAL_ANGLE;
         //设置电机转动到目标角度

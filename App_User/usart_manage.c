@@ -2,6 +2,9 @@
 
 extern uint8_t houseRotateTargetPoint_dir;   //目标指向方位编码（0x01-0x08）
 extern uint8_t isPowerOff_flag;
+extern HouseRotateStruct house_rotate;
+extern float Calibration_Offset; //校准偏移量
+extern  float Target_Azimuth; //校准后的最终角度
 
 // 串口发送命令
 void Serial_SendHexCmd(uint8_t *data, uint16_t len)
@@ -10,9 +13,10 @@ void Serial_SendHexCmd(uint8_t *data, uint16_t len)
 }
 
 
-// 串口命令处理函数
+// 串口接收命令处理函数
 void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
 {
+    Serial_Printf("1111111111111166666666666666:\r\n");
     // 处理命令
     switch (cmd)
     {
@@ -71,6 +75,13 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
             };
             Serial_SendHexCmd(heartbeat, sizeof(heartbeat));
             break;
+
+        //接收磁力计标定方位命令,上位机端发送需要除2的值，因为实际角度是0-360，而串口只能发送0-255
+        //底盘端接收也需要乘2，因为实际角度是0-360，而串口只能发送0-255
+        //
+        case USART_CMD_CALIBRATION_DIR:
+            Calibration_Offset = data[0] * 2 - Target_Azimuth; //计算偏移量
+            break;
         
         //关机
         case USART_CMD_SHUTDOWN:
@@ -108,17 +119,15 @@ void DeviceInfo_CycleSend(void)
     static uint8_t last_battery_level = 0;
 
     uint8_t battery_level = getBatteryLevel();
-    // //打印电量
-    // // Serial_Printf("battery_level = %d\r\n", battery_level);
-    // //连续获取的电压的差值少于5的时候，则才认为电压稳定
-    // last_battery_level = battery_level;
-    // if (battery_level!=0 && abs(battery_level - last_battery_level) < 3){
-    //     deviceInfo_Report.voltage_stable_flag ++;
-    // }else{
-    //     return;
-    // }
 
-    
+    uint8_t position_data[] = {
+        USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_POSITION_STATUS,
+        (uint8_t)((uint16_t)getTurntableAngle() / 2),    // 0-360映射到0-180
+        (uint8_t)((uint16_t)getCompassAngle_Raw() / 2),  //原始角度    // 0-360映射到0-180
+        getMOTOR_State(),
+        USART_CMD_TAIL
+    };
+    Serial_SendHexCmd(position_data, sizeof(position_data));
 
     
     //低电压上报

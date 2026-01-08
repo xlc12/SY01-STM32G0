@@ -25,6 +25,9 @@
 //获取指南针角度
 float getCompassAngle();
 
+//获取磁力计原始角度
+float getCompassAngle_Raw();
+
 
 //获取指南针方位
 uint8_t getCompassDirection ();

@@ -5,6 +5,11 @@ static PID_ControllerTypeDef motor_pid;  // 电机PID控制器
 static float target_angle = 0.0f;        // 目标角度
 static float angle_tolerance = 1.0f;     // 角度容忍度（默认1度）
 static bool pid_control_active = false;  // PID控制激活标志
+//电机状态
+static StepMotor_StateTypeDef motor_state = STEP_MOTOR_STOP;
+
+extern uint8_t isBackInit_flag;
+
 
 uint16_t adc_max = 0;
 uint16_t adc_min = 0;
@@ -21,6 +26,7 @@ void MOTOR_Init(void )
 {
     //初始化电机
     StepMotor_Init();
+    motor_state = STEP_MOTOR_STOP;
     
     // 初始化PID控制器（参数可根据实际情况调整）
     PID_Init(&motor_pid, PID_KP, PID_KI, PID_KD, -10.0f, 10.0f);
@@ -37,13 +43,14 @@ void MOTOR_SetDirection(StepMotor_StateTypeDef state)
     {
         DC_Motor_SetDirection(state);
     }
+    motor_state = state;
     
 }
 
 //电机转动到指定步数
 void MOTOR_RotateSteps(int32_t steps)
 {
-    StepMotor_RotateSteps(steps);
+    // StepMotor_RotateSteps(steps);
 }
 
 // 电机转动到指定角度
@@ -51,6 +58,10 @@ void MOTOR_RotateToAngle(int angle)
 {   
     angle_tolerance = ANGLE_TOLERANCE;  // 设置角度容忍度为1度
     MOTOR_RotateToAngleWithPID(angle, angle_tolerance);
+    if(angle == INITIAL_ANGLE)
+    {
+        isBackInit_flag = 1;
+    }
 
 }
 
@@ -66,13 +77,16 @@ void MOTOR_Stop(void)
         DC_Motor_Stop();
     }
     pid_control_active = false;  // 关闭PID控制
+    motor_state = STEP_MOTOR_STOP;
+    
 }
 
 
 // 获 取电机当前状态
 uint8_t getMOTOR_State() 
 {
-    return StepMotor_GetState();
+    // return StepMotor_GetState();
+    return motor_state;
 }
 
 
@@ -81,6 +95,26 @@ float getTurntableAngle()
 {
     return ADC_PB1_ConvertToAngle();
 }
+
+
+// //判断转盘是否在初始位
+// bool isTurntableInInitialPosition(void)
+// {
+//     float turntableAngle = 0;
+
+//     if(getMOTOR_State() != STEP_MOTOR_STOP){
+//         return false;
+//     }
+
+//     turntableAngle = getTurntableAdcConvertToAngle();
+//     //判断turntableAngle的值和初始位置的差值绝对值小于2度，则认为是初始位置，否则不是初始位置
+//     if(turntableAngle < INITIAL_ANGLE + 2 && turntableAngle >  358)
+//     { 
+//       return true;
+//     }
+
+//     return false;
+// }
 
 
 //将ADC值转换为角度,ADC值限制在80-4090,角度范围0-360
@@ -238,6 +272,7 @@ bool MOTOR_UpdatePIDControl(void)
     {
         StepMotor_Stop();  // 停止电机
         pid_control_active = false;  // 关闭PID控制
+        motor_state = STEP_MOTOR_STOP;  // 更新电机状态
         return true;  // 返回完成
     }
     
@@ -249,17 +284,20 @@ bool MOTOR_UpdatePIDControl(void)
     {
         // 反转
         MOTOR_SetDirection(STEP_MOTOR_REVERSE);
+        motor_state = STEP_MOTOR_REVERSE;
     }
     else if (pid_output < 0)
     {
         // 正转
         MOTOR_SetDirection(STEP_MOTOR_FORWARD);
+        motor_state = STEP_MOTOR_FORWARD;
         
     }
     else
     {
         // 停止
         StepMotor_Stop();
+        motor_state = STEP_MOTOR_STOP;
     }
     
     // // 根据PID输出绝对值调整电机速度（这里简化处理，实际可以更复杂）

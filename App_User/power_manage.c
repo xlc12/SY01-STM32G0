@@ -40,7 +40,7 @@ float getBatteryVoltage(void)
 
 }
 
-#define STABLE_CHECK_COUNT 10  // 连续采样次数
+#define STABLE_CHECK_COUNT 20  // 连续采样次数
 #define STABLE_THRESHOLD 0.1f // 稳定判断阈值(V)
 //ADC采集稳定检测接口
 uint8_t isBatteryVoltageStable(void)

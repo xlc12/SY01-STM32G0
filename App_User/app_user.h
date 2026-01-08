@@ -125,6 +125,9 @@ extern HouseRotateStruct house_rotate;
 #define USART_CMD_HEARTBEAT 0x07
 //关机命令
 #define USART_CMD_SHUTDOWN 0x08
+//磁力计方位标定命令
+#define USART_CMD_CALIBRATION_DIR 0x09
+
 
 
 
@@ -141,6 +144,7 @@ extern HouseRotateStruct house_rotate;
 #define USART_S_CMD_CHARGE 0x0A2
 //充满提示上报命令，用USART_S_CMD_CHARGE代替，数据为1表示充电中，数据为2表示拔掉充电器，数据为3表示充满
 // #define USART_S_CMD_FULL 0x0A3
+
 //按键次数上报命令
 #define USART_S_CMD_KEY_COUNT 0x0A4
 //磁力计方向上报命令
@@ -149,6 +153,8 @@ extern HouseRotateStruct house_rotate;
 #define USART_S_CMD_HEARTBEAT 0x0A6
 //开始磁力计校准命令，数据00为开始，01为结束
 #define USART_S_CMD_CALIBRATION_ANGLE 0x0A7
+//位置状态信息上报命令：data[0]转盘角度，data[1]磁力计角度，data[2]电机状态
+#define USART_S_CMD_POSITION_STATUS 0x0A8
 
 
 
