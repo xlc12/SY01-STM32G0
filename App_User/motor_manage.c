@@ -5,6 +5,11 @@ static PID_ControllerTypeDef motor_pid;  // 电机PID控制器
 static float target_angle = 0.0f;        // 目标角度
 static float angle_tolerance = 1.0f;     // 角度容忍度（默认1度）
 static bool pid_control_active = false;  // PID控制激活标志
+
+//超出PID角度范围处理标志
+static int8_t is_out_of_pid_range = 0;   //负数为小于最小角度范围，正数为大于最大角度范围
+
+
 //电机状态
 static StepMotor_StateTypeDef motor_state = STEP_MOTOR_STOP;
 
@@ -14,9 +19,12 @@ extern uint8_t isBackInit_flag;
 uint16_t adc_max = 0;
 uint16_t adc_min = 0;
 
-//ADC值限制在80-4090,角度范围0-360
-#define ADC_MIN_LIMIT 80
+//ADC值限制
+#define ADC_MIN_LIMIT 250
 #define ADC_MAX_LIMIT 4090
+// 角度范围0-330
+#define ANGLE_MIN_LIMIT 20.0f
+#define ANGLE_MAX_LIMIT 330.0f
 
 //电机类型定义
 Enum_Motor_TypeTypeDef motor_type = MOTOR_TYPE_STEP;
@@ -47,10 +55,13 @@ void MOTOR_SetDirection(StepMotor_StateTypeDef state)
     
 }
 
-//电机转动到指定步数
-void MOTOR_RotateSteps(int32_t steps)
+//电机转动到指定步进角度,STEPS_PER_CIRCLE 步为一圈,映射为360度
+void MOTOR_RotateSteps_To_Angle(int32_t angle)
 {
-    // StepMotor_RotateSteps(steps);
+    // STEPS_PER_CIRCLE步为一圈,映射为360度
+    int32_t steps = 0;
+    steps = angle * STEPS_PER_CIRCLE / 360;
+    StepMotor_RotateSteps(steps);
 }
 
 // 电机转动到指定角度
@@ -117,7 +128,7 @@ bool isTurntableInInitialPosition(void)
 }
 
 
-//将ADC值转换为角度,ADC值限制在80-4090,角度范围0-360
+//将ADC值转换为角度,ADC值限制在250-4090,映射角度范围20-330
 float getTurntableAdcConvertToAngle(void)
 {
     float angle = 0.0f;
@@ -131,17 +142,14 @@ float getTurntableAdcConvertToAngle(void)
     {
         adc_raw = ADC_MIN_LIMIT;
     }
-    // 映射ADC值到角度范围0-360
-    angle = (float)(adc_raw - ADC_MIN_LIMIT) / (float)(ADC_MAX_LIMIT - ADC_MIN_LIMIT) * 360.0f;
-    // 将角度值限制在0-360之间
-    if(angle < 0.0f)
-    {
-        angle += 360.0f;
-    }
-    else if(angle >= 360.0f)
-    {
-        angle -= 360.0f;
-    }
+    // // 映射ADC值到角度范围0-360
+    // angle = (float)(adc_raw - ADC_MIN_LIMIT) / (float)(ADC_MAX_LIMIT - ADC_MIN_LIMIT) * 360.0f;
+    
+
+    
+    // 将角度值限制在20-330之间，计算公式：(ADC - ADC_MIN) * (330 - 20) / (ADC_MAX - ADC_MIN) + 20
+    angle = (float)(adc_raw - ADC_MIN_LIMIT) * (ANGLE_MAX_LIMIT - ANGLE_MIN_LIMIT) / (float)(ADC_MAX_LIMIT - ADC_MIN_LIMIT)  + ANGLE_MIN_LIMIT;
+    
    
     return angle;
 }
@@ -230,14 +238,18 @@ float PID_Compute(PID_ControllerTypeDef *pid, float feedback)
 // 使用PID控制电机转动到指定角度
 bool MOTOR_RotateToAngleWithPID(int target_angle_degree, float tolerance)
 {
-    //限制为0-360
-    if(target_angle_degree < 0)
+    //限制角度ANGLE_MIN_LIMIT-ANGLE_MAX_LIMIT
+    if(target_angle_degree < ANGLE_MIN_LIMIT)
     {
-        target_angle_degree += 360;
+        is_out_of_pid_range = target_angle_degree - ANGLE_MIN_LIMIT;
+        target_angle_degree = ANGLE_MIN_LIMIT;
+        
     }
-    else if(target_angle_degree >= 360)
+    else if(target_angle_degree >= ANGLE_MAX_LIMIT)
     {
-        target_angle_degree -= 360;
+        is_out_of_pid_range = target_angle_degree - ANGLE_MAX_LIMIT;
+        target_angle_degree = ANGLE_MAX_LIMIT;
+
     }
     // 设置目标角度和容忍度
     target_angle = (float)target_angle_degree;
@@ -270,9 +282,23 @@ bool MOTOR_UpdatePIDControl(void)
     // 检查是否达到目标角度
     if (angle_error <= angle_tolerance)
     {
-        StepMotor_Stop();  // 停止电机
-        pid_control_active = false;  // 关闭PID控制
-        motor_state = STEP_MOTOR_STOP;  // 更新电机状态
+        if(is_out_of_pid_range != 0)
+        {
+            // 超出PID角度范围，进行补偿转动
+            MOTOR_RotateSteps_To_Angle(is_out_of_pid_range);
+            // StepMotor_Stop();  // 停止电机
+            pid_control_active = false;  // 关闭PID控制
+            // motor_state = STEP_MOTOR_STOP;  // 更新电机状态
+            // return true;  // 返回完成
+        }
+        else
+        {
+            StepMotor_Stop();  // 停止电机
+            pid_control_active = false;  // 关闭PID控制
+            motor_state = STEP_MOTOR_STOP;  // 更新电机状态
+        }
+            
+        
         return true;  // 返回完成
     }
     

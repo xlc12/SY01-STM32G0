@@ -322,13 +322,35 @@ int main(void)
   //电机
   while (getMOTOR_State() != STEP_MOTOR_STOP)  
   {
-   
+    //延时
+    HAL_Delay(500);
+    //日志
+    Serial_Printf("开机回到初始位\r\n");
     
   }
-   //延时
-   HAL_Delay(1000);
-   house_rotate.Current_dir = getCompassDirection();
 
+    int32_t Read_Calibration_Offset_Data[1] = {0};
+
+    FLASH_ReadInt32(FLASH_START_ADDRESS4,&Read_Calibration_Offset_Data[0]);
+    //从flash中读取标定偏移量
+    if(Calibration_Offset != Read_Calibration_Offset_Data[0])
+    {
+
+      Calibration_Offset = Read_Calibration_Offset_Data[0];
+    }
+
+  //获取当前方位
+   for(int i = 0; i < 10; i++)
+   {
+     //延时
+     HAL_Delay(100);
+     //获取初始位
+     house_rotate.Current_dir = getCompassDirection();
+     getCompassAngle();
+   }
+  //  house_rotate.Current_dir = getCompassDirection();
+  
+  Serial_Printf("6666666Initial_angle = %f\r\n", getCompassAngle());//
   isInit_flag = 1;
 
     
@@ -351,10 +373,10 @@ int main(void)
 
     /************** 测试用代码 -begin **************/
     //获取转盘角度
-    // float turntableAngle = 0;
-    // turntableAngle = getTurntableAdcConvertToAngle();
+    float turntableAngle = 0;
+    turntableAngle = getTurntableAdcConvertToAngle();
     
-    // Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
+    Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
 
     /************** 测试用代码 -end **************/
 
@@ -397,9 +419,11 @@ int main(void)
     if(Calibration_Offset != Read_Calibration_Offset_Data[0])
     {
       Calibration_Offset = Read_Calibration_Offset_Data[0];
+      //日志
+      Serial_Printf("66666666666Calibration_Offset = %d\r\n", Calibration_Offset);
     }
 
-
+    
     
 
     /*业务需求-3、财神位转动*/
@@ -409,21 +433,31 @@ int main(void)
 
     
     //判断是否回到起始位
-    if (getMOTOR_State() == STEP_MOTOR_STOP )
+    if (getMOTOR_State() == STEP_MOTOR_STOP && isBackInit_flag == 1)
     {
       /* code */
+      //延时1秒
+      HAL_Delay(1000);
       isBackInit_flag = 0; // 回到起始位结束
-      house_rotate.Current_dir = getCompassDirection(); //回到起始位才更新当前磁力计方位
       
-      Serial_Printf("666666666666666666666666");// 
+      for(int i = 0; i < 10; i++)
+      { 
+        //延时50ms
+        HAL_Delay(50);
+        //获取当前磁力计方位
+        house_rotate.Current_dir = getCompassDirection();
+      }
+
+      // Serial_Printf("6666666_isBackInit_flag = %d, Current_angle = %f\r\n", isBackInit_flag, getCompassAngle());//
+      
+      // Serial_Printf("666666666666666666666666");// 
     }
 
-    // Serial_Printf("Current_dir = %d", house_rotate.Current_dir);// 
     
     
     // house_rotate.Current_dir = 1;
 
-   Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+  //  Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
     if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
     {
@@ -432,7 +466,7 @@ int main(void)
       house_rotate.Target_dir = 0; //旋转完成后，将目标方向设为0
 
         //计算目标角度
-        float target_angle = (target_dir-house_rotate.Current_dir) * 45 + INITIAL_ANGLE;
+        float target_angle = (target_dir - house_rotate.Current_dir) * 45 + INITIAL_ANGLE;
         //设置电机转动到目标角度
         if(target_angle < 0)
         {
@@ -445,10 +479,7 @@ int main(void)
         // {
         //   continue;
         // }
-        //先回到初始位
-        MOTOR_RotateToAngle(INITIAL_ANGLE);
-        //延时1秒
-        HAL_Delay(1000);
+        
         //再转到目标角度
         MOTOR_RotateToAngle(target_angle);
         Serial_Printf("target_angle = %f\r\n", target_angle);
@@ -475,7 +506,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+
+
+      //while(1);
   }
+
+
+
+
+
+
+
+
+
 
   /* USER CODE END 3 */
 }

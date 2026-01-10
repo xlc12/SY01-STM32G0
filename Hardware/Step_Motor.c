@@ -30,6 +30,8 @@ static uint8_t g_step_index = 0;  // 当前步进索引
 static int32_t g_remaining_steps = 0;  // 剩余步数（0表示连续转动）
 static uint16_t g_current_speed = DEFAULT_SPEED_MS;  // 当前速度（ms），默认1ms
 
+
+
 /**
  * @brief  设置电机相位状态
  * @param  phase: 相位值数组
@@ -129,7 +131,7 @@ void StepMotor_RunContinuously(StepMotor_StateTypeDef dir)
 
 /**
  * @brief  控制电机转动指定步数
- * @param  steps：需要转动的步数（正数：正转，负数：反转）
+ * @param  steps：需要转动的步数（正数：逆时针转，负数：顺时针转）
  */
 void StepMotor_RotateSteps(int32_t steps)
 {
@@ -141,12 +143,12 @@ void StepMotor_RotateSteps(int32_t steps)
   // 更新状态和剩余步数
   if (steps > 0)
   {
-    g_motor_state = STEP_MOTOR_FORWARD;
+    g_motor_state = STEP_MOTOR_REVERSE;
     g_remaining_steps = steps;
   }
   else
   {
-    g_motor_state = STEP_MOTOR_REVERSE;
+    g_motor_state = STEP_MOTOR_FORWARD;
     g_remaining_steps = -steps;
   }
   
@@ -171,6 +173,7 @@ StepMotor_StateTypeDef StepMotor_GetState(void)
  */
 void StepMotor_TimerIRQHandler(void)
 {
+
   const uint8_t (*seq)[4] = NULL;
   
   // 根据电机状态选择转向序列

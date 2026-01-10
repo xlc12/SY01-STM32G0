@@ -36,6 +36,9 @@ void MOTOR_Init(void );
 // 设置电机转动方向
 void MOTOR_SetDirection(StepMotor_StateTypeDef state); 
 
+//电机转动到指定步进角度
+void MOTOR_RotateSteps_To_Angle(int32_t steps);
+
 // 电机转动到指定角度
 void MOTOR_RotateToAngle(int angle);
 

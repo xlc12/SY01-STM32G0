@@ -39,9 +39,9 @@
 
 
 //开机转到初始角度
-#define INITIAL_ANGLE 0//定义转盘初始位角度，根据实际测试马嘴对着按键的位置来确定 不能小于5度
-
-
+#define INITIAL_ANGLE 90//定义转盘初始位角度，根据实际测试马嘴对着按键的位置来确定 不能小于5度
+//马转一圈所需的步数
+#define STEPS_PER_CIRCLE 38000
 
 
 
@@ -77,7 +77,7 @@ extern HouseRotateStruct house_rotate;
 // -------------------------- 电机参数配置（按实际硬件修改）--------------------------
 #define STEP_ANGLE       18.0f      // 步距角，单位：度/步
 #define REDUCTION_RATIO  118.0f     // 减速比
-#define STEPS_PER_CIRCLE (360.0f / STEP_ANGLE * REDUCTION_RATIO)  // 转一圈所需步数
+
 
 //电机速度配置
 #define DEFAULT_SPEED_MS 1500 // 默认速度（us）
