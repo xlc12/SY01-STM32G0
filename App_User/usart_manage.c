@@ -9,7 +9,7 @@ extern  float Target_Azimuth; //校准后的最终角度
 
 extern uint8_t isCalibration_flag;
 extern uint8_t isCompassCalibration_dir_flag;
-extern uint16_t INITIAL_ANGLE_Flash;  //初始位置
+extern int32_t INITIAL_ANGLE_Flash;  //初始位置
 extern uint16_t isCompassInitAngle_flag;
 
 // 串口发送命令
@@ -165,6 +165,8 @@ void DeviceInfo_CycleSend(void)
         uint8_t low_battery[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_LOW_BATTERY, battery_level, USART_CMD_TAIL};
 
         Serial_SendHexCmd(low_battery, sizeof(low_battery));
+        //日志
+        Serial_Printf("1111111111 DeviceInfo_CycleSend: Low battery: %d, \r\n", battery_level);
     }else if ( battery_level >= 20 && deviceInfo_Report.ChaBattery_Level_Statusrging_Status == 1)
     {
         deviceInfo_Report.ChaBattery_Level_Statusrging_Status = 0;
@@ -183,7 +185,7 @@ void DeviceInfo_CycleSend(void)
     if ( charg_status == POWER_CHARGING_STATUS)
     {
         deviceInfo_Report.Charging_Status = POWER_CHARGING_STATUS;
-        // Serial_Printf("3333333 Charging_Status = %d\r\n", charg_status);
+        Serial_Printf("3333333  Charging_Status = %d\r\n", charg_status);
         // 充电中，发送提示信息
         uint8_t charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
         Serial_SendHexCmd(charging, sizeof(charging));
@@ -192,7 +194,7 @@ void DeviceInfo_CycleSend(void)
     //充电完成上报
     if ( charg_status == POWER_FULL_STATUS)
     {
-        // Serial_Printf("4444444 Charging_Status = %d\r\n", charg_status);
+        Serial_Printf("4444444 Charging_Status = %d\r\n", charg_status);
         deviceInfo_Report.Charging_Status = POWER_FULL_STATUS;
         // 充电完成，发送提示信息
         uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
@@ -202,7 +204,7 @@ void DeviceInfo_CycleSend(void)
     //取消充电上报
     if ( charg_status == CHARGING_CANCEL_STATUS)
     {
-        // Serial_Printf("5555555 Charging_Status = %d\r\n", charg_status);
+        Serial_Printf("5555555 Charging_Status = %d\r\n", charg_status);
         deviceInfo_Report.Charging_Status = CHARGING_CANCEL_STATUS;
         // 取消充电，发送提示信息
         // uint8_t not_charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, CHARGING_CANCEL_STATUS, Charging_Status, USART_CMD_TAIL};

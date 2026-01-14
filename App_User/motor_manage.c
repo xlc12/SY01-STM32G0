@@ -14,7 +14,7 @@ static int8_t is_out_of_pid_range = 0;   //负数为小于最小角度范围，�
  StepMotor_StateTypeDef motor_state = STEP_MOTOR_STOP;
 
 extern uint8_t isBackInit_flag;
-extern uint16_t INITIAL_ANGLE_Flash;
+extern int32_t INITIAL_ANGLE_Flash;
 
 
 uint16_t adc_max = 0;
@@ -24,8 +24,8 @@ uint16_t adc_min = 0;
 #define ADC_MIN_LIMIT 250
 #define ADC_MAX_LIMIT 4090
 // 角度范围0-330
-#define ANGLE_MIN_LIMIT 20.0f
-#define ANGLE_MAX_LIMIT 330.0f
+#define ANGLE_MIN_LIMIT 20
+#define ANGLE_MAX_LIMIT 330
 
 //电机类型定义
 Enum_Motor_TypeTypeDef motor_type = MOTOR_TYPE_STEP;
@@ -124,7 +124,8 @@ bool isTurntableInInitialPosition(void)
 
     turntableAngle = getTurntableAdcConvertToAngle();
     //判断turntableAngle的值和初始位置的差值绝对值小于2度，则认为是初始位置，否则不是初始位置
-    if(turntableAngle < INITIAL_ANGLE_Flash + 2 && turntableAngle >  358)
+    if(turntableAngle < INITIAL_ANGLE_Flash +INITIAL_ANGLE_THRESHOLD  
+        && turntableAngle >  INITIAL_ANGLE_Flash -INITIAL_ANGLE_THRESHOLD)
     { 
       return true;
     }
@@ -259,12 +260,15 @@ bool MOTOR_RotateToAngleWithPID(int target_angle_degree, float tolerance)
     {
         is_out_of_pid_range = target_angle_degree - ANGLE_MIN_LIMIT;
         target_angle_degree = ANGLE_MIN_LIMIT;
+        //日志输出
+        Serial_Printf("target_angle_degree = %d, is_out_of_pid_range = %d,\r\n", target_angle_degree, is_out_of_pid_range);
         
     }
     else if(target_angle_degree >= ANGLE_MAX_LIMIT)
     {
         is_out_of_pid_range = target_angle_degree - ANGLE_MAX_LIMIT;
         target_angle_degree = ANGLE_MAX_LIMIT;
+        Serial_Printf("target_angle_degree = %d, is_out_of_pid_range = %d,\r\n", target_angle_degree, is_out_of_pid_range);
 
     }
     // 设置目标角度和容忍度
@@ -302,6 +306,7 @@ bool MOTOR_UpdatePIDControl(void)
         {
             // 超出PID角度范围，进行补偿转动
             MOTOR_RotateSteps_To_Angle(is_out_of_pid_range);
+            is_out_of_pid_range = 0;
             // StepMotor_Stop();  // 停止电机
             pid_control_active = false;  // 关闭PID控制
             // motor_state = STEP_MOTOR_STOP;  // 更新电机状态

@@ -3,6 +3,9 @@
 
 #include "main.h"
 
+//循环日志打印
+#define DEBUG_LOG 1
+
 // #include "QMC5883P.h"
 // #include "qmc_5883p_data.h"
 // #include <string.h>
@@ -41,7 +44,10 @@
 //开机转到初始角度
 #define INITIAL_ANGLE 173//定义转盘初始位角度，根据实际测试马嘴对着按键的位置来确定 不能小于5度
 //马转一圈所需的步数
-#define STEPS_PER_CIRCLE 38000
+#define STEPS_PER_CIRCLE 20000
+
+//判断是否在初始位位置的阈值
+#define INITIAL_ANGLE_THRESHOLD 1.5f //初始位位置阈值，单位：度
 
 
 

@@ -98,7 +98,7 @@ int32_t Calibration_Offset = 0; //校准偏移量
 uint8_t isCompassCalibration_dir_flag = 0;
 
 //初始位置
-uint16_t INITIAL_ANGLE_Flash = INITIAL_ANGLE;
+int32_t INITIAL_ANGLE_Flash = INITIAL_ANGLE;
 //初始位校准标志位
 uint16_t isCompassInitAngle_flag = 0;
 
@@ -326,7 +326,7 @@ int main(void)
     //从flash中读取初始位角度
     int32_t Read_InitAngle[1] = {0};
     FLASH_ReadInt32(FLASH_PAGE_30_ADDRESS_1,&Read_InitAngle[0]);
-    if( (INITIAL_ANGLE_Flash != Read_InitAngle[0])  && (Read_InitAngle[0] < 360) )
+    if( (INITIAL_ANGLE_Flash != Read_InitAngle[0])  && (Read_InitAngle[0] < 360) && (Read_InitAngle[0] > 0) )
     {
       INITIAL_ANGLE_Flash = Read_InitAngle[0];
       Serial_Printf("INITIAL_ANGLE_Flash: %d\r\n", INITIAL_ANGLE_Flash);
@@ -339,15 +339,8 @@ int main(void)
 
 
 
-
-
-    // HAL_Delay(100);
-     // 上电自动执行椭圆校准（10秒）
-//  QMC5883_Calibrate();
-// getTurntableAdcMaxMinValue();
-
-  //待ADC采集稳定
-  isBatteryVoltageStable(); //有延时操作
+    //待ADC采集稳定
+    isBatteryVoltageStable(); //有延时操作
 
 
 
@@ -423,8 +416,9 @@ int main(void)
     float turntableAngle = 0;
     turntableAngle = getTurntableAdcConvertToAngle();
     
+    #if DEBUG_LOG
     Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
-
+    #endif
     /************** 测试用代码 -end **************/
 
 
@@ -544,11 +538,11 @@ int main(void)
 
     
     //判断是否回到起始位
-    if (getMOTOR_State() == STEP_MOTOR_STOP && isBackInit_flag == 1)
+    if (getMOTOR_State() == STEP_MOTOR_STOP && isTurntableInInitialPosition())
     {
       /* code */
       //延时1秒
-      HAL_Delay(1000);
+      HAL_Delay(500);
       isBackInit_flag = 0; // 回到起始位结束
       
       for(int i = 0; i < 10; i++)
@@ -566,8 +560,10 @@ int main(void)
 
     
     // house_rotate.Current_dir = 1;
-
+    #if DEBUG_LOG
    Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+    #endif
+
 
     if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
     {

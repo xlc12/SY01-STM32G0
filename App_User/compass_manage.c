@@ -15,9 +15,17 @@ extern int32_t Calibration_Offset; //校准偏移量
  */
 float getCompassAngle()
 {
+    float angle = Target_Azimuth + Calibration_Offset;
+    if(angle>360)
+    {
+        angle = angle -360;
+    }
+    else if(angle<0)
+    {
+        angle = angle + 360;
+    }
     
-    
-    return Target_Azimuth + Calibration_Offset; //校准后的最终角度 ;
+    return angle; //校准后的最终角度 ;
 }
 
 //获取磁力计原始角度
