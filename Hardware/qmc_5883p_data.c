@@ -11,9 +11,9 @@
 
 
 // 全局校准偏移量（存储三轴硬铁干扰偏移值）
-int16_t QMC_Offset_X = 0;
-int16_t QMC_Offset_Y = 0;
-int16_t QMC_Offset_Z = 0;
+int32_t QMC_Offset_X = 0;
+int32_t QMC_Offset_Y = 0;
+int32_t QMC_Offset_Z = 0;
 
 //QMC5883L变量
 #define PI 3.1415926535f     // 新增：圆周率（用于弧度/角度转换）
@@ -122,35 +122,36 @@ void QMC5883_Calibrate(void)
     QMC_Offset_Z = (max_z + min_z) / 2;
 
     // 擦除芯片
-    FLASH_ErasePage(FLASH_START_ADDRESS1);
-    FLASH_ErasePage(FLASH_START_ADDRESS2);
-    FLASH_ErasePage(FLASH_START_ADDRESS3);
+    FLASH_ErasePage(FLASH_PAGE_29_ADDRESS_1);
+    FLASH_ErasePage(FLASH_PAGE_29_ADDRESS_2);
+    FLASH_ErasePage(FLASH_PAGE_29_ADDRESS_3);
     
-    HAL_Delay(200);
+    HAL_Delay(50);
     //  写入数据
-    FLASH_WriteInt32(FLASH_START_ADDRESS1,QMC_Offset_X);
-    FLASH_WriteInt32(FLASH_START_ADDRESS2,QMC_Offset_Y);
-    FLASH_WriteInt32(FLASH_START_ADDRESS3,QMC_Offset_Z);
+    FLASH_WriteInt32(FLASH_PAGE_29_ADDRESS_1,QMC_Offset_X);
+    FLASH_WriteInt32(FLASH_PAGE_29_ADDRESS_2,QMC_Offset_Y);
+    FLASH_WriteInt32(FLASH_PAGE_29_ADDRESS_3,QMC_Offset_Z);
 
     //判断是否写入成功
     int32_t Read_Data[3] = {0,0,0};
 
-    FLASH_ReadInt32(FLASH_START_ADDRESS1,&Read_Data[0]);
-    FLASH_ReadInt32(FLASH_START_ADDRESS2,&Read_Data[1]);
-    FLASH_ReadInt32(FLASH_START_ADDRESS3,&Read_Data[2]);
+    FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_1,&Read_Data[0]);
+    FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_2,&Read_Data[1]);
+    FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_3,&Read_Data[2]);
     if(Read_Data[0] == QMC_Offset_X &&
         Read_Data[1] == QMC_Offset_Y &&
         Read_Data[2] == QMC_Offset_Z)
     {
-        Serial_Printf("QMC5883 Calibration Success!\n");
+        Serial_Printf("QMC5883_1111111111111111\r\n");
+
     }
     else
     {
-        Serial_Printf("QMC5883 Calibration Failed!\n");
+        Serial_Printf("QMC5883_0000000000000000\r\n");
     } 
 
     //打印QMC_Offset_X,QMC_Offset_Y,QMC_Offset_Z
-    Serial_Printf("QMC5883_Calibrate**********QMC_Offset_X: %d, QMC_Offset_Y: %d, QMC_Offset_Z: %d\r\n", QMC_Offset_X, QMC_Offset_Y, QMC_Offset_Z);
+    Serial_Printf("QMC5883_Calibrate: QMC_Offset_X: %d, QMC_Offset_Y: %d, QMC_Offset_Z: %d\r\n", QMC_Offset_X, QMC_Offset_Y, QMC_Offset_Z);
     
     uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CALIBRATION_ANGLE, 01, USART_CMD_TAIL};
     Serial_SendHexCmd(cmd, sizeof(cmd));
@@ -226,9 +227,9 @@ static void calculate_azimuth(void)
 void qmc5883l_filter(void)
 {
     // 先对原始数据进行校准（减去硬铁偏移量）
-    int16_t cali_x = qmcdata[0] - QMC_Offset_X;
-    int16_t cali_y = qmcdata[1] - QMC_Offset_Y;
-    int16_t cali_z = qmcdata[2] - QMC_Offset_Z;
+    int16_t cali_x = qmcdata[0] - (int16_t)(QMC_Offset_X);
+    int16_t cali_y = qmcdata[1] - (int16_t)(QMC_Offset_Y);
+    int16_t cali_z = qmcdata[2] - (int16_t)(QMC_Offset_Z);
 
     // 首次初始化：填充缓冲区（不变）
     if (!is_initialized) {

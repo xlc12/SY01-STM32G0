@@ -28,13 +28,19 @@ HAL_StatusTypeDef FLASH_WriteInt32(uint32_t address, int32_t data)
 {
   HAL_StatusTypeDef status = HAL_ERROR;
 
-  // 确保地址是8字节对齐（双字写入要求）
-  if ((address % 8) != 0 ||
-      address < FLASH_START_ADDRESS ||
-      address > (FLASH_START_ADDRESS + FLASH_PAGE_SIZE - 8))
-  {
-    return HAL_ERROR;
-  }
+  // // 确保地址是8字节对齐（双字写入要求）
+  // if ((address % 8) != 0 ||
+  //     address < FLASH_PAGE_29_ADDRESS_0 ||
+  //     address > (FLASH_PAGE_29_ADDRESS_0 + FLASH_PAGE_SIZE - 8) ||
+  //     address < FLASH_PAGE_30_ADDRESS_0 ||
+  //     address > (FLASH_PAGE_30_ADDRESS_0 + FLASH_PAGE_SIZE - 8) ||
+  //     address < FLASH_PAGE_31_ADDRESS_0 ||
+  //     address > (FLASH_PAGE_31_ADDRESS_0 + FLASH_PAGE_SIZE - 8) 
+
+  //   )
+  // {
+  //   return HAL_ERROR;
+  // }
 
   HAL_FLASH_Unlock();
   __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR |
@@ -52,11 +58,17 @@ HAL_StatusTypeDef FLASH_WriteInt32(uint32_t address, int32_t data)
 
 HAL_StatusTypeDef FLASH_ReadInt32(uint32_t address, int32_t* data)
 {
-  if (address < FLASH_START_ADDRESS ||
-      address > (FLASH_START_ADDRESS + FLASH_PAGE_SIZE - 4))
-  {
-    return HAL_ERROR;
-  }
+  // if (
+  //     address < FLASH_PAGE_29_ADDRESS_0 ||
+  //     address > (FLASH_PAGE_29_ADDRESS_0 + FLASH_PAGE_SIZE - 4) ||
+  //     address < FLASH_PAGE_30_ADDRESS_0 ||
+  //     address > (FLASH_PAGE_30_ADDRESS_0 + FLASH_PAGE_SIZE - 4) ||
+  //     address < FLASH_PAGE_31_ADDRESS_0 ||
+  //     address > (FLASH_PAGE_31_ADDRESS_0 + FLASH_PAGE_SIZE - 4) 
+  //   )
+  // {
+  //   return HAL_ERROR;
+  // }
 
   *data = *((int32_t*)address);
   return HAL_OK;

@@ -30,6 +30,8 @@ static uint8_t g_step_index = 0;  // 当前步进索引
 static int32_t g_remaining_steps = 0;  // 剩余步数（0表示连续转动）
 static uint16_t g_current_speed = DEFAULT_SPEED_MS;  // 当前速度（ms），默认1ms
 
+extern StepMotor_StateTypeDef motor_state;
+
 
 
 /**
@@ -101,6 +103,7 @@ void StepMotor_Stop(void)
   StepMotor_SetPhase((uint8_t[]){1, 1, 1, 1});
   
   // 更新状态
+  motor_state = STEP_MOTOR_STOP;
   g_motor_state = STEP_MOTOR_STOP;
   g_remaining_steps = 0;
   g_step_index = 0;

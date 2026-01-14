@@ -3,7 +3,7 @@
 extern  float Target_Azimuth; //校准后的最终角度
 
 //标定偏移值
-extern float Calibration_Offset; //校准偏移量
+extern int32_t Calibration_Offset; //校准偏移量
 
 
 

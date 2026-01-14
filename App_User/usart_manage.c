@@ -4,7 +4,7 @@
 extern uint8_t houseRotateTargetPoint_dir;   //目标指向方位编码（0x01-0x08）
 extern uint8_t isPowerOff_flag;
 extern HouseRotateStruct house_rotate;
-extern uint16_t Calibration_Offset; //校准偏移量
+extern int32_t Calibration_Offset; //校准偏移量
 extern  float Target_Azimuth; //校准后的最终角度
 
 extern uint8_t isCalibration_flag;
@@ -70,8 +70,6 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
             //校准
             isCalibration_flag = 1;
             break;
-            
-            break;
 
         //接收接收心跳命令  //返回设备信息：电量、转盘角度、磁力计角度、电机状态（待定）
         case USART_CMD_HEARTBEAT:
@@ -98,9 +96,10 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
         //底盘端接收也需要乘2，因为实际角度是0-360，而串口只能发送0-255
         //
         case USART_CMD_CALIBRATION_DIR:
-            Calibration_Offset = (int16_t)(data[0] * 2 - getCompassAngle_Raw()); //计算偏移量
+            Calibration_Offset = (int32_t)(data[0] * 2 - getCompassAngle_Raw()); //计算偏移量
            
             isCompassCalibration_dir_flag = 1; //磁力计方位标定标志位
+            break;
         
         
         //初始位校准命令

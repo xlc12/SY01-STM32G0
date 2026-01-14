@@ -42,9 +42,9 @@
 #define CALIBRATION_INTERVAL 10U // 采集间隔：10毫秒（单位：毫秒）
 
 // 全局校准偏移量（供外部调用）
-extern int16_t QMC_Offset_X;
-extern int16_t QMC_Offset_Y;
-extern int16_t QMC_Offset_Z;
+extern int32_t QMC_Offset_X;
+extern int32_t QMC_Offset_Y;
+extern int32_t QMC_Offset_Z;
 
 uint8_t QMC5883_Init();//初始化
 uint8_t QMC5883_GetData(int16_t *QMC_data);//读数据

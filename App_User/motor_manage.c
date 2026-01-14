@@ -11,9 +11,10 @@ static int8_t is_out_of_pid_range = 0;   //负数为小于最小角度范围，�
 
 
 //电机状态
-static StepMotor_StateTypeDef motor_state = STEP_MOTOR_STOP;
+ StepMotor_StateTypeDef motor_state = STEP_MOTOR_STOP;
 
 extern uint8_t isBackInit_flag;
+extern uint16_t INITIAL_ANGLE_Flash;
 
 
 uint16_t adc_max = 0;
@@ -69,7 +70,7 @@ void MOTOR_RotateToAngle(int angle)
 {   
     angle_tolerance = ANGLE_TOLERANCE;  // 设置角度容忍度为1度
     MOTOR_RotateToAngleWithPID(angle, angle_tolerance);
-    if(angle == INITIAL_ANGLE)
+    if(angle == INITIAL_ANGLE_Flash)
     {
         isBackInit_flag = 1;
     }
@@ -96,7 +97,11 @@ void MOTOR_Stop(void)
 // 获 取电机当前状态
 uint8_t getMOTOR_State() 
 {
-    // return StepMotor_GetState();
+    // // return StepMotor_GetState();
+    // if(StepMotor_GetState() == STEP_MOTOR_STOP)
+    // {
+    //     motor_state = STEP_MOTOR_STOP;
+    // }
     return motor_state;
 }
 
@@ -119,7 +124,7 @@ bool isTurntableInInitialPosition(void)
 
     turntableAngle = getTurntableAdcConvertToAngle();
     //判断turntableAngle的值和初始位置的差值绝对值小于2度，则认为是初始位置，否则不是初始位置
-    if(turntableAngle < INITIAL_ANGLE + 2 && turntableAngle >  358)
+    if(turntableAngle < INITIAL_ANGLE_Flash + 2 && turntableAngle >  358)
     { 
       return true;
     }
@@ -166,7 +171,7 @@ void getTurntableAdcMaxMinValue(void)
 //关机动作
 void MOTOR_PowerOff(void)
 {   
-    MOTOR_RotateToAngle(INITIAL_ANGLE+20);
+    MOTOR_RotateToAngle(INITIAL_ANGLE_Flash+20);
     // while(pid_control_active)
     // {
     //     // 等待PID控制完成
