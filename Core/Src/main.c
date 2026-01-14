@@ -92,7 +92,15 @@ uint8_t isInit_flag = 0;
 
 //转回起始位标志
 uint8_t isBackInit_flag = 0;
-float Calibration_Offset = 0.0f; //校准偏移量
+int16_t Calibration_Offset = 0.0f; //校准偏移量
+
+//磁力计方位标定标志位
+uint8_t isCompassCalibration_dir_flag = 0;
+
+//初始位置
+uint16_t INITIAL_ANGLE_Flash = INITIAL_ANGLE;
+//初始位校准标志位
+uint16_t isCompassInitAngle_flag = 0;
 
 
 /************************** 按键监测 应用层：按键事件回调函数 -· **************************/
@@ -308,8 +316,23 @@ int main(void)
     /*业务需求-2、串口命令接收处理*/  
 	  UART_RegisterCallback(UART_Command_Callback);
 
+
+
     //开机回到初始位  --*功能需求 3*--
-    MOTOR_RotateToAngle(INITIAL_ANGLE);
+    //从flash中读取初始位角度
+    int32_t Read_InitAngle[1] = {0};
+    FLASH_ReadInt32(FLASH_START_ADDRESS5,&Read_InitAngle[0]);
+    if(INITIAL_ANGLE_Flash != Read_InitAngle[0] && Read_InitAngle[0] != 0)
+    {
+      INITIAL_ANGLE_Flash = Read_InitAngle[0];
+    }
+
+    MOTOR_RotateToAngle(INITIAL_ANGLE_Flash);
+
+
+
+
+
     // HAL_Delay(100);
      // 上电自动执行椭圆校准（10秒）
 //  QMC5883_Calibrate();
@@ -319,6 +342,8 @@ int main(void)
   isBatteryVoltageStable(); //有延时操作
 
 
+
+
   //电机
   while (getMOTOR_State() != STEP_MOTOR_STOP)  
   {
@@ -326,6 +351,14 @@ int main(void)
     HAL_Delay(500);
     //日志
     Serial_Printf("开机回到初始位\r\n");
+
+     //长按关机，由于带延时操作，不在中断中执行  --*功能需求 2*--
+     if(isPowerOff_flag)
+     {
+       Serial_Printf("Key Long Press\r\n");
+       MOTOR_PowerOff();  //执行开关机点击动作，待实现
+       SYSTEM_PowerOff(POWER_OFF_TIMER);  //系统延时关机
+     }
     
   }
 
@@ -333,10 +366,12 @@ int main(void)
 
     FLASH_ReadInt32(FLASH_START_ADDRESS4,&Read_Calibration_Offset_Data[0]);
     //从flash中读取标定偏移量
-    if(Calibration_Offset != Read_Calibration_Offset_Data[0])
+    if(Calibration_Offset != Read_Calibration_Offset_Data[0] && Read_Calibration_Offset_Data[0] != 0)
     {
 
       Calibration_Offset = Read_Calibration_Offset_Data[0];
+      //日志
+      Serial_Printf("从flash中读取标定偏移量: %d, %f\r\n", Read_Calibration_Offset_Data[0], Calibration_Offset);
     }
 
   //获取当前方位
@@ -381,7 +416,7 @@ int main(void)
     /************** 测试用代码 -end **************/
 
 
-    /****** 事件循环 -begin ******/
+    /************************************ 事件循环 -begin ********************************/
 
     //长按关机，由于带延时操作，不在中断中执行  --*功能需求 2*--
     if(isPowerOff_flag)
@@ -392,7 +427,9 @@ int main(void)
     }
 
 
-    //磁力计校准
+
+
+    /******************** 磁力计校准 -begin *****************/
     if(isCalibration_flag)
     {
       // //如果不在初始位，则先回到初始位，再进行校准
@@ -404,28 +441,87 @@ int main(void)
       isCalibration_flag = 0;
       //延时1秒
       HAL_Delay(100);
+      //串口发送数据
       uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CALIBRATION_ANGLE, 00, USART_CMD_TAIL};
       Serial_SendHexCmd(cmd, sizeof(cmd));
       //延时1秒
       HAL_Delay(1000);
       QMC5883_Calibrate();
     }
+    /***** 磁力计校准 -end ******/
 
 
-    int32_t Read_Calibration_Offset_Data[1] = {0};
 
-    FLASH_ReadInt32(FLASH_START_ADDRESS4,&Read_Calibration_Offset_Data[0]);
-    //更新Calibration_Offset
-    if(Calibration_Offset != Read_Calibration_Offset_Data[0])
+
+    /***************** 磁力计方位标定 -begin *****************/
+    //重新标定，更新Calibration_Offset
+    if(isCompassCalibration_dir_flag == 1)
     {
-      Calibration_Offset = Read_Calibration_Offset_Data[0];
-      //日志
-      Serial_Printf("66666666666Calibration_Offset = %d\r\n", Calibration_Offset);
+ 
+       //保存到flash
+       FLASH_ErasePage(FLASH_START_ADDRESS4);
+       HAL_Delay(100);
+       FLASH_WriteInt32(FLASH_START_ADDRESS4,Calibration_Offset);
+
+       HAL_Delay(100);
+      //判断是否写入成功
+      int32_t Read_Calibration_Offset_Data[1] = {0};
+      FLASH_ReadInt32(FLASH_START_ADDRESS4,&Read_Calibration_Offset_Data[0]);
+      if(Read_Calibration_Offset_Data[0] == Calibration_Offset)
+      {
+        Serial_Printf("USART_CMD_CALIBRATION_ANGLE: %d, %d, 写入成功\r\n", (int32_t)(Calibration_Offset), Read_Calibration_Offset_Data[0]);
+        
+        uint8_t data[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_CMD_CALIBRATION_DIR, isCompassCalibration_dir_flag, USART_CMD_TAIL};
+        Serial_SendHexCmd(data, sizeof(data));
+        isCompassCalibration_dir_flag = 0;
+
+      }
+      else
+      {
+        Serial_Printf("USART_CMD_CALIBRATION_ANGLE: %d, %d, 写入失败\r\n", (int32_t)(Calibration_Offset), Read_Calibration_Offset_Data[0]);
+      }
     }
+    
+    /***** 磁力计方位标定 -end ******/
+
+
+
+    /***************** 初始角度校准 -begin *****************/
+    if(isCompassInitAngle_flag !=0 && getMOTOR_State() == STEP_MOTOR_STOP)
+    {
+      //获取当前转盘角度
+      int32_t Angle = 0;
+      Angle = (int32_t)(getTurntableAdcConvertToAngle());
+      
+      //将当前角度写入flash
+      FLASH_ErasePage(FLASH_START_ADDRESS5);
+      HAL_Delay(100);
+      FLASH_WriteInt32(FLASH_START_ADDRESS5,Angle);
+      HAL_Delay(100);
+      //判断是否写入成功
+      int32_t Read_Data[1] = {0};
+      FLASH_ReadInt32(FLASH_START_ADDRESS5,&Read_Data[0]);
+      if(Read_Data[0] == Angle)
+      {
+          Serial_Printf("USART_CMD_INITIAL_ANGLE: %d, %d\r\n", Angle, Read_Data[0]);
+          INITIAL_ANGLE_Flash = Read_Data[0];
+          
+          uint8_t data[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_CMD_INITIAL_ANGLE, isCompassInitAngle_flag, USART_CMD_TAIL};
+          Serial_SendHexCmd(data, sizeof(data));
+          isCompassInitAngle_flag = 0;
+      }
+      else
+      {
+          Serial_Printf("USART_CMD_INITIAL_ANGLE: %d, %d, 写入失败\r\n", Angle, Read_Data[0]);
+      }
+    }
+    /***** 初始角度校准 -end ******/
+
+
 
     
     
-
+    /***************** 财神位转动 -begin *****************/
     /*业务需求-3、财神位转动*/
     //财神位转动算法 -begin 
     
@@ -454,10 +550,9 @@ int main(void)
     }
 
     
-    
     // house_rotate.Current_dir = 1;
 
-  //  Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+   Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
 
     if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
     {
@@ -486,6 +581,8 @@ int main(void)
       }
 
       //财神位转动算法 -end
+
+      /*********** 财神位转动 -end ********/
 
 
 

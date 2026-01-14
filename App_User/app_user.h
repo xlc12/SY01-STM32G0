@@ -39,7 +39,7 @@
 
 
 //开机转到初始角度
-#define INITIAL_ANGLE 90//定义转盘初始位角度，根据实际测试马嘴对着按键的位置来确定 不能小于5度
+#define INITIAL_ANGLE 173//定义转盘初始位角度，根据实际测试马嘴对着按键的位置来确定 不能小于5度
 //马转一圈所需的步数
 #define STEPS_PER_CIRCLE 38000
 
@@ -90,7 +90,7 @@ extern HouseRotateStruct house_rotate;
 #define PID_KD 0.1f
 
 //设置电机转动到指定角度的角度容忍度为1度--MOTOR_RotateToAngle(int angle) 
-#define ANGLE_TOLERANCE 1.0f
+#define ANGLE_TOLERANCE 0.5f
 
 
 //串口命令定义，命令格式为帧头0x55 0x52 + 命令字 +命令 + 帧尾
@@ -127,6 +127,8 @@ extern HouseRotateStruct house_rotate;
 #define USART_CMD_SHUTDOWN 0x08
 //磁力计方位标定命令
 #define USART_CMD_CALIBRATION_DIR 0x09
+//初始角度校准命令
+#define USART_CMD_INITIAL_ANGLE 0x0A
 
 
 

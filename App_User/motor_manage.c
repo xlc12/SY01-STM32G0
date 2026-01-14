@@ -238,6 +238,17 @@ float PID_Compute(PID_ControllerTypeDef *pid, float feedback)
 // 使用PID控制电机转动到指定角度
 bool MOTOR_RotateToAngleWithPID(int target_angle_degree, float tolerance)
 {
+    //角度限制0-360度
+    if(target_angle_degree < 0)
+    {
+        target_angle_degree = 0;
+    }
+    else if(target_angle_degree >= 360)
+    {
+        target_angle_degree = 360;
+    }
+
+    // 检查是否超出PID控制范围
     //限制角度ANGLE_MIN_LIMIT-ANGLE_MAX_LIMIT
     if(target_angle_degree < ANGLE_MIN_LIMIT)
     {

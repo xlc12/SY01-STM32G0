@@ -4,10 +4,13 @@
 extern uint8_t houseRotateTargetPoint_dir;   //目标指向方位编码（0x01-0x08）
 extern uint8_t isPowerOff_flag;
 extern HouseRotateStruct house_rotate;
-extern float Calibration_Offset; //校准偏移量
+extern uint16_t Calibration_Offset; //校准偏移量
 extern  float Target_Azimuth; //校准后的最终角度
 
 extern uint8_t isCalibration_flag;
+extern uint8_t isCompassCalibration_dir_flag;
+extern uint16_t INITIAL_ANGLE_Flash;  //初始位置
+extern uint16_t isCompassInitAngle_flag;
 
 // 串口发送命令
 void Serial_SendHexCmd(uint8_t *data, uint16_t len)
@@ -32,7 +35,16 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
 
         //转指定角度命令
         case USART_CMD_MOTOR_ROTATE_TO_ANGLE:
-            MOTOR_RotateToAngle(data[0] * 2);
+            //如果角度大于360，则转到初始位置，在ESP32中，发送data[0]=255，则代表转回初始位
+            if(data[0]*2 > 360)
+            {
+                MOTOR_RotateToAngle(INITIAL_ANGLE_Flash);
+            }
+            else
+            {
+                MOTOR_RotateToAngle(data[0] * 2);
+            }
+            
             break;
         
         //停止电机转动命令
@@ -86,13 +98,14 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
         //底盘端接收也需要乘2，因为实际角度是0-360，而串口只能发送0-255
         //
         case USART_CMD_CALIBRATION_DIR:
-            Calibration_Offset = data[0] * 2 - getCompassAngle_Raw(); //计算偏移量
-            //保存到flash
-            FLASH_ErasePage(FLASH_START_ADDRESS4);
-            FLASH_WriteInt32(FLASH_START_ADDRESS4,(int32_t)(Calibration_Offset));
+            Calibration_Offset = (int16_t)(data[0] * 2 - getCompassAngle_Raw()); //计算偏移量
            
-            
-            
+            isCompassCalibration_dir_flag = 1; //磁力计方位标定标志位
+        
+        
+        //初始位校准命令
+        case USART_CMD_INITIAL_ANGLE:
+            isCompassInitAngle_flag = 1;
             break;
 
     
