@@ -121,7 +121,7 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
         case KEY_EVENT_SINGLE_CLICK:
             // Serial_Printf("Key Single Click\r\n");
             //回到原位
-            MOTOR_RotateToAngle(INITIAL_ANGLE_Flash);
+            MOTOR_RotateToAngle(INITIAL_ANGLE);
             
             break;
 
@@ -129,10 +129,12 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
             // 双击业务逻辑
             // Serial_Printf("Key Double Click\r\n");
             //停止旋转
-            if(isInit_flag == 1)
-            {
-              MOTOR_Stop();
-            }
+            // if(isInit_flag == 1)
+            // {
+            //   MOTOR_Stop();
+            // }
+
+            MOTOR_Stop();
              
             break;
 
@@ -150,7 +152,6 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
             {
               //校准
               isCalibration_flag = 1;
-              
             }
             break;
 
@@ -296,8 +297,8 @@ int main(void)
     //  MOTOR_SetDirection(STEP_MOTOR_FORWARD);
 
 
-    QMC_IIC_Init();
-    QMC5883_Init();
+    // QMC_IIC_Init();
+    // QMC5883_Init();
     
 
     //串口命令回调函数注册
@@ -308,90 +309,92 @@ int main(void)
 
 
 
-    //开机获取flash的数据
-    int32_t Read_QMC_Data[3] = {0,0,0};
-    // 读取寄存器值
-     FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_1,&Read_QMC_Data[0]); //上电读取  
-     FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_2,&Read_QMC_Data[1]); //上电读取
-     FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_3,&Read_QMC_Data[2]); //上电读取
-     QMC_Offset_X = Read_QMC_Data[0];
-     QMC_Offset_Y = Read_QMC_Data[1];
-     QMC_Offset_Z = Read_QMC_Data[2];
-     //打印QMC_Offset_X,QMC_Offset_Y,QMC_Offset_Z
-     Serial_Printf("QMC_Offset_X: %d, QMC_Offset_Y: %d, QMC_Offset_Z: %d\r\n", QMC_Offset_X, QMC_Offset_Y, QMC_Offset_Z);
+    // //开机获取flash的数据
+    // int32_t Read_QMC_Data[3] = {0,0,0};
+    // // 读取寄存器值
+    //  FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_1,&Read_QMC_Data[0]); //上电读取  
+    //  FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_2,&Read_QMC_Data[1]); //上电读取
+    //  FLASH_ReadInt32(FLASH_PAGE_29_ADDRESS_3,&Read_QMC_Data[2]); //上电读取
+    //  QMC_Offset_X = Read_QMC_Data[0];
+    //  QMC_Offset_Y = Read_QMC_Data[1];
+    //  QMC_Offset_Z = Read_QMC_Data[2];
+    //  //打印QMC_Offset_X,QMC_Offset_Y,QMC_Offset_Z
+    //  Serial_Printf("QMC_Offset_X: %d, QMC_Offset_Y: %d, QMC_Offset_Z: %d\r\n", QMC_Offset_X, QMC_Offset_Y, QMC_Offset_Z);
 
 
 
-    //开机回到初始位  --*功能需求 3*--
-    //从flash中读取初始位角度
-    int32_t Read_InitAngle[1] = {0};
-    FLASH_ReadInt32(FLASH_PAGE_30_ADDRESS_1,&Read_InitAngle[0]);
-    if( (INITIAL_ANGLE_Flash != Read_InitAngle[0])  && (Read_InitAngle[0] < 360) && (Read_InitAngle[0] > 0) )
-    {
-      INITIAL_ANGLE_Flash = Read_InitAngle[0];
-      Serial_Printf("INITIAL_ANGLE_Flash: %d\r\n", INITIAL_ANGLE_Flash);
-    }
+   
+    // //从flash中读取初始位角度
+    // int32_t Read_InitAngle[1] = {0};
+    // FLASH_ReadInt32(FLASH_PAGE_30_ADDRESS_1,&Read_InitAngle[0]);
+    // if( (INITIAL_ANGLE_Flash != Read_InitAngle[0])  && (Read_InitAngle[0] < 360) && (Read_InitAngle[0] > 0) )
+    // {
+    //   INITIAL_ANGLE_Flash = Read_InitAngle[0];
+    //   Serial_Printf("INITIAL_ANGLE_Flash: %d\r\n", INITIAL_ANGLE_Flash);
+    // }
 
-    //打印初始位角度
-    Serial_Printf("***************** INITIAL_ANGLE_Flash 22222 ************: %d\r\n", INITIAL_ANGLE_Flash);
-
-    MOTOR_RotateToAngle(INITIAL_ANGLE_Flash);
+    // //打印初始位角度
+    // Serial_Printf("***************** INITIAL_ANGLE_Flash 22222 ************: %d\r\n", INITIAL_ANGLE_Flash);
 
 
-
-    //待ADC采集稳定
-    isBatteryVoltageStable(); //有延时操作
+     //开机回到初始位  --*功能需求 3*--
+    MOTOR_RotateToAngle(INITIAL_ANGLE);
 
 
 
+    // //待ADC采集稳定
+    // isBatteryVoltageStable(); //有延时操作
 
-  //电机
-  while (getMOTOR_State() != STEP_MOTOR_STOP)  
-  {
-    //延时
-    HAL_Delay(500);
-    //日志
-    Serial_Printf("666666666666\r\n");
 
-     //长按关机，由于带延时操作，不在中断中执行  --*功能需求 2*--
-     if(isPowerOff_flag)
-     {
-       Serial_Printf("Key Long Press\r\n");
-       MOTOR_PowerOff();  //执行开关机点击动作，待实现
-       SYSTEM_PowerOff(POWER_OFF_TIMER);  //系统延时关机
-     }
+
+
+  // //电机
+  // while (getMOTOR_State() != STEP_MOTOR_STOP)  
+  // {
+  //   //延时
+  //   HAL_Delay(500);
+  //   //日志
+  //   Serial_Printf("666666666666\r\n");
+
+  //    //长按关机，由于带延时操作，不在中断中执行  --*功能需求 2*--
+  //    if(isPowerOff_flag)
+  //    {
+  //      Serial_Printf("Key Long Press\r\n");
+  //      MOTOR_PowerOff();  //执行开关机点击动作，待实现
+  //      SYSTEM_PowerOff(POWER_OFF_TIMER);  //系统延时关机
+  //    }
     
-  }
+  // }
 
 
 
-  //从flash中读取标定偏移量
-    int32_t Read_Calibration_Offset_Data[1] = {0};
+  // //从flash中读取标定偏移量
+  //   int32_t Read_Calibration_Offset_Data[1] = {0};
 
-    FLASH_ReadInt32(FLASH_PAGE_31_ADDRESS_1,&Read_Calibration_Offset_Data[0]);
-    //从flash中读取标定偏移量
-    if(Calibration_Offset != Read_Calibration_Offset_Data[0] && Read_Calibration_Offset_Data[0] != 0)
-    {
+  //   FLASH_ReadInt32(FLASH_PAGE_31_ADDRESS_1,&Read_Calibration_Offset_Data[0]);
+  //   //从flash中读取标定偏移量
+  //   if(Calibration_Offset != Read_Calibration_Offset_Data[0] && Read_Calibration_Offset_Data[0] != 0)
+  //   {
 
-      Calibration_Offset = Read_Calibration_Offset_Data[0];
-      //日志
-      Serial_Printf("  *********** Read_Calibration_Offset_Data *************: %d, %d\r\n", Read_Calibration_Offset_Data[0], Calibration_Offset);
-    }
-    Serial_Printf("  *********** Read_Calibration_Offset_Data 22*************: %d, %d\r\n", Read_Calibration_Offset_Data[0], Calibration_Offset);
+  //     Calibration_Offset = Read_Calibration_Offset_Data[0];
+  //     //日志
+  //     Serial_Printf("  *********** Read_Calibration_Offset_Data *************: %d, %d\r\n", Read_Calibration_Offset_Data[0], Calibration_Offset);
+  //   }
+  //   Serial_Printf("  *********** Read_Calibration_Offset_Data 22*************: %d, %d\r\n", Read_Calibration_Offset_Data[0], Calibration_Offset);
 
-  //获取当前方位
-   for(int i = 0; i < 10; i++)
-   {
-     //延时
-     HAL_Delay(100);
-     //获取初始位
-     house_rotate.Current_dir = getCompassDirection();
-     getCompassAngle();
-   }
-  //  house_rotate.Current_dir = getCompassDirection();
+  // //获取当前方位
+  //  for(int i = 0; i < 10; i++)
+  //  {
+  //    //延时
+  //    HAL_Delay(100);
+  //    //获取初始位
+  //    house_rotate.Current_dir = getCompassDirection();
+  //    getCompassAngle();
+  //  }
+  // //  house_rotate.Current_dir = getCompassDirection();
   
-  Serial_Printf("6666666Initial_angle = %f\r\n", getCompassAngle());//
-  isInit_flag = 1;
+  // Serial_Printf("6666666Initial_angle = %f\r\n", getCompassAngle());//
+  // isInit_flag = 1;
 
     
 
@@ -411,15 +414,17 @@ int main(void)
   while (1)
   {	
 
-    /************** 测试用代码 -begin **************/
-    //获取转盘角度
-    float turntableAngle = 0;
-    turntableAngle = getTurntableAdcConvertToAngle();
+     HAL_Delay(100);
+
+    // /************** 测试用代码 -begin **************/
+    // //获取转盘角度
+    // float turntableAngle = 0;
+    // turntableAngle = getTurntableAdcConvertToAngle();
     
-    #if DEBUG_LOG
-    Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
-    #endif
-    /************** 测试用代码 -end **************/
+    // #if DEBUG_LOG
+    // Serial_Printf("ADC: %d, turntableAngle = %f\r\n", ADC_PB1_ReadRawValue(), turntableAngle);
+    // #endif
+    // /************** 测试用代码 -end **************/
 
 
     /************************************ 事件循环 -begin ********************************/
@@ -432,98 +437,103 @@ int main(void)
       SYSTEM_PowerOff(POWER_OFF_TIMER);  //系统延时关机
     }
 
-
-
-
-    /******************** 磁力计校准 -begin *****************/
-    if(isCalibration_flag)
-    {
-      // //如果不在初始位，则先回到初始位，再进行校准
-      // if(!isTurntableInInitialPosition())
-      // {
-      //   MOTOR_RotateToAngle(INITIAL_ANGLE_Flash);
-      //   return;
-      // }
-      isCalibration_flag = 0;
-      //日志
-      Serial_Printf("111111111111111111111111  QMC5883_Calibrate()  11111111111111111111111111111111\r\n");
-      //延时1秒
-      HAL_Delay(100);
-      //串口发送数据
-      uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CALIBRATION_ANGLE, 00, USART_CMD_TAIL};
-      Serial_SendHexCmd(cmd, sizeof(cmd));
-      //延时1秒
-      HAL_Delay(1000);
-      QMC5883_Calibrate();
-    }
-
-    /***** 磁力计校准 -end ******/
+     //串口-设备信息上报  --*功能需求 4*--
+    //低电压、充电、充满上报
+    DeviceInfo_CycleSend();//周期性监测设备信息
 
 
 
 
-    /***************** 磁力计方位标定 -begin *****************/
-    //重新标定，更新flash中的Calibration_Offset
-    if(isCompassCalibration_dir_flag == 1)
-    {
+
+    // /******************** 磁力计校准 -begin *****************/
+    // if(isCalibration_flag)
+    // {
+    //   // //如果不在初始位，则先回到初始位，再进行校准
+    //   // if(!isTurntableInInitialPosition())
+    //   // {
+    //   //   MOTOR_RotateToAngle(INITIAL_ANGLE_Flash);
+    //   //   return;
+    //   // }
+    //   isCalibration_flag = 0;
+    //   //日志
+    //   Serial_Printf("111111111111111111111111  QMC5883_Calibrate()  11111111111111111111111111111111\r\n");
+    //   //延时1秒
+    //   HAL_Delay(100);
+    //   //串口发送数据
+    //   uint8_t cmd[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CALIBRATION_ANGLE, 00, USART_CMD_TAIL};
+    //   Serial_SendHexCmd(cmd, sizeof(cmd));
+    //   //延时1秒
+    //   HAL_Delay(1000);
+    //   QMC5883_Calibrate();
+    // }
+
+    // /***** 磁力计校准 -end ******/
+
+
+
+
+    // /***************** 磁力计方位标定 -begin *****************/
+    // //重新标定，更新flash中的Calibration_Offset
+    // if(isCompassCalibration_dir_flag == 1)
+    // {
  
-       //保存到flash
-       FLASH_ErasePage(FLASH_PAGE_31_ADDRESS_1);
-       HAL_Delay(50);
-       FLASH_WriteInt32(FLASH_PAGE_31_ADDRESS_1,Calibration_Offset);
+    //    //保存到flash
+    //    FLASH_ErasePage(FLASH_PAGE_31_ADDRESS_1);
+    //    HAL_Delay(50);
+    //    FLASH_WriteInt32(FLASH_PAGE_31_ADDRESS_1,Calibration_Offset);
 
-       HAL_Delay(50);
-      //判断是否写入成功
-      int32_t Read_Calibration_Offset_Data[1] = {0};
-      FLASH_ReadInt32(FLASH_PAGE_31_ADDRESS_1,&Read_Calibration_Offset_Data[0]);
-      if(Read_Calibration_Offset_Data[0] == Calibration_Offset)
-      {
-        Serial_Printf("USART_CMD_CALIBRATION_ANGLE: %d, %d, success\r\n", Calibration_Offset, Read_Calibration_Offset_Data[0]);
+    //    HAL_Delay(50);
+    //   //判断是否写入成功
+    //   int32_t Read_Calibration_Offset_Data[1] = {0};
+    //   FLASH_ReadInt32(FLASH_PAGE_31_ADDRESS_1,&Read_Calibration_Offset_Data[0]);
+    //   if(Read_Calibration_Offset_Data[0] == Calibration_Offset)
+    //   {
+    //     Serial_Printf("USART_CMD_CALIBRATION_ANGLE: %d, %d, success\r\n", Calibration_Offset, Read_Calibration_Offset_Data[0]);
         
-        uint8_t data[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_CMD_CALIBRATION_DIR, isCompassCalibration_dir_flag, USART_CMD_TAIL};
-        Serial_SendHexCmd(data, sizeof(data));
-        isCompassCalibration_dir_flag = 0;
+    //     uint8_t data[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_CMD_CALIBRATION_DIR, isCompassCalibration_dir_flag, USART_CMD_TAIL};
+    //     Serial_SendHexCmd(data, sizeof(data));
+    //     isCompassCalibration_dir_flag = 0;
 
-      }
-      else
-      {
-        Serial_Printf("USART_CMD_CALIBRATION_ANGLE: %d, %d, fail\r\n", Calibration_Offset, Read_Calibration_Offset_Data[0]);
-      }
-    }
+    //   }
+    //   else
+    //   {
+    //     Serial_Printf("USART_CMD_CALIBRATION_ANGLE: %d, %d, fail\r\n", Calibration_Offset, Read_Calibration_Offset_Data[0]);
+    //   }
+    // }
     
     /***** 磁力计方位标定 -end ******/
 
 
 
-    /***************** 初始角度校准 -begin *****************/
-    if(isCompassInitAngle_flag !=0 && getMOTOR_State() == STEP_MOTOR_STOP)
-    {
-      //获取当前转盘角度
-      int32_t Angle = 0;
-      Angle = (int32_t)(getTurntableAdcConvertToAngle());
+    // /***************** 初始角度校准 -begin *****************/
+    // if(isCompassInitAngle_flag !=0 && getMOTOR_State() == STEP_MOTOR_STOP)
+    // {
+    //   //获取当前转盘角度
+    //   int32_t Angle = 0;
+    //   Angle = (int32_t)(getTurntableAdcConvertToAngle());
       
-      //将当前角度写入flash
-      FLASH_ErasePage(FLASH_PAGE_30_ADDRESS_1);
-      HAL_Delay(100);
-      FLASH_WriteInt32(FLASH_PAGE_30_ADDRESS_1,Angle);
-      HAL_Delay(100);
-      //判断是否写入成功
-      int32_t Read_InitAngle_Data[1] = {0};
-      FLASH_ReadInt32(FLASH_PAGE_30_ADDRESS_1,&Read_InitAngle_Data[0]);
-      if(Read_InitAngle_Data[0] == Angle)
-      {
-          Serial_Printf("USART_CMD_INITIAL_ANGLE: %d, %d, success\r\n", Angle, Read_InitAngle_Data[0]);
-          INITIAL_ANGLE_Flash = Read_InitAngle_Data[0];
+    //   //将当前角度写入flash
+    //   FLASH_ErasePage(FLASH_PAGE_30_ADDRESS_1);
+    //   HAL_Delay(100);
+    //   FLASH_WriteInt32(FLASH_PAGE_30_ADDRESS_1,Angle);
+    //   HAL_Delay(100);
+    //   //判断是否写入成功
+    //   int32_t Read_InitAngle_Data[1] = {0};
+    //   FLASH_ReadInt32(FLASH_PAGE_30_ADDRESS_1,&Read_InitAngle_Data[0]);
+    //   if(Read_InitAngle_Data[0] == Angle)
+    //   {
+    //       Serial_Printf("USART_CMD_INITIAL_ANGLE: %d, %d, success\r\n", Angle, Read_InitAngle_Data[0]);
+    //       INITIAL_ANGLE_Flash = Read_InitAngle_Data[0];
           
-          uint8_t data[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_CMD_INITIAL_ANGLE, isCompassInitAngle_flag, USART_CMD_TAIL};
-          Serial_SendHexCmd(data, sizeof(data));
-          isCompassInitAngle_flag = 0;
-      }
-      else
-      {
-          Serial_Printf("USART_CMD_INITIAL_ANGLE: %d, %d, fail\r\n", Angle, Read_InitAngle_Data[0]);
-      }
-    }
+    //       uint8_t data[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_CMD_INITIAL_ANGLE, isCompassInitAngle_flag, USART_CMD_TAIL};
+    //       Serial_SendHexCmd(data, sizeof(data));
+    //       isCompassInitAngle_flag = 0;
+    //   }
+    //   else
+    //   {
+    //       Serial_Printf("USART_CMD_INITIAL_ANGLE: %d, %d, fail\r\n", Angle, Read_InitAngle_Data[0]);
+    //   }
+    // }
     /***** 初始角度校准 -end ******/
 
 
@@ -534,35 +544,35 @@ int main(void)
     /*业务需求-3、财神位转动*/
     //财神位转动算法 -begin 
     
-    float angle = getCompassAngle();  
+  //   float angle = getCompassAngle();  
 
     
-    //判断是否回到起始位
-    if (getMOTOR_State() == STEP_MOTOR_STOP && isTurntableInInitialPosition())
-    {
-      /* code */
-      //延时1秒
-      HAL_Delay(500);
-      isBackInit_flag = 0; // 回到起始位结束
+  //   //判断是否回到起始位
+  //   if (getMOTOR_State() == STEP_MOTOR_STOP && isTurntableInInitialPosition())
+  //   {
+  //     /* code */
+  //     //延时1秒
+  //     HAL_Delay(500);
+  //     isBackInit_flag = 0; // 回到起始位结束
       
-      for(int i = 0; i < 10; i++)
-      { 
-        //延时50ms
-        HAL_Delay(50);
-        //获取当前磁力计方位
-        house_rotate.Current_dir = getCompassDirection();
-      }
+  //     for(int i = 0; i < 10; i++)
+  //     { 
+  //       //延时50ms
+  //       HAL_Delay(50);
+  //       //获取当前磁力计方位
+  //       house_rotate.Current_dir = getCompassDirection();
+  //     }
 
-      // Serial_Printf("6666666_isBackInit_flag = %d, Current_angle = %f\r\n", isBackInit_flag, getCompassAngle());//
+  //     // Serial_Printf("6666666_isBackInit_flag = %d, Current_angle = %f\r\n", isBackInit_flag, getCompassAngle());//
       
-      // Serial_Printf("666666666666666666666666");// 
-    }
+  //     // Serial_Printf("666666666666666666666666");// 
+  //   }
 
     
-    // house_rotate.Current_dir = 1;
-    #if DEBUG_LOG
-   Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
-    #endif
+  //   // house_rotate.Current_dir = 1;
+  //   #if DEBUG_LOG
+  // //  Serial_Printf("housePoint_dir = %d, angle = %f\r\n", house_rotate.Current_dir, angle);
+  //   #endif
 
 
     if(house_rotate.Target_dir != 0) //如果目标方向不为0，则执行旋转
@@ -572,7 +582,7 @@ int main(void)
       house_rotate.Target_dir = 0; //旋转完成后，将目标方向设为0
 
         //计算目标角度
-        float target_angle = (target_dir - house_rotate.Current_dir) * 45 + INITIAL_ANGLE_Flash;
+        float target_angle = (target_dir - 1) * 45 + INITIAL_ANGLE;
         //设置电机转动到目标角度
         if(target_angle < 0)
         {
@@ -597,14 +607,11 @@ int main(void)
 
 
 
-    //串口-设备信息上报  --*功能需求 4*--
-    //低电压、充电、充满上报
-    DeviceInfo_CycleSend();//周期性监测设备信息
+   
 
 
 
-
-    HAL_Delay(500);
+    // HAL_Delay(500);
 
 
     /****** 事件循环 -end ******/

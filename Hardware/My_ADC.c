@@ -61,7 +61,7 @@ float ADC_BAT_ReadVoltage(void)
   float voltage = 0.0f;
 
   // 原始值转电压：(ADC值/分辨率)*参考电压 → 乘以分压比
-  voltage = (float)ADC_BAT_ReadRawValue() / ADC_RESOLUTION * ADC_REF_VOLTAGE;
+  voltage = (uint16_t)ADC_BAT_ReadRawValue() * ADC_REF_VOLTAGE / ADC_RESOLUTION ;
   return voltage * ADC_BAT_RATIO;
 }
 
@@ -128,7 +128,7 @@ float ADC_PB1_ConvertToAngle(void)
 float convert_battery_voltage(uint16_t adc_value)
 {
   // 电路参数配置（根据原理图调整）
-  const float data = 3.3f;       // ADC参考电压（单位：V）
+  const float data = 3.15f;       // ADC参考电压（单位：V）
   const float dat2 = 3.0f; // 分压比（20K+10K）/10K = 3.0
   const uint16_t dat3 = 4096;     // ADC分辨率（12位ADC为4096）
 

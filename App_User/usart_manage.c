@@ -38,7 +38,7 @@ void Uart_CommandHandler(uint8_t cmd, uint8_t* data, uint16_t len)
             //如果角度大于360，则转到初始位置，在ESP32中，发送data[0]=255，则代表转回初始位
             if(data[0]*2 > 360)
             {
-                MOTOR_RotateToAngle(INITIAL_ANGLE_Flash);
+                MOTOR_RotateToAngle(INITIAL_ANGLE);
             }
             else
             {
@@ -146,15 +146,17 @@ void DeviceInfo_CycleSend(void)
     static uint8_t last_battery_level = 0;
 
     uint8_t battery_level = getBatteryLevel();
+    //打印电量
+    // Serial_Printf("1111111111 DeviceInfo_CycleSend: Battery level: %d, \r\n", battery_level);
 
-    uint8_t position_data[] = {
-        USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_POSITION_STATUS,
-        (uint8_t)((uint16_t)getTurntableAngle() / 2),    // 0-360映射到0-180
-        (uint8_t)((uint16_t)getCompassAngle_Raw() / 2),  //原始角度    // 0-360映射到0-180
-        getMOTOR_State(),
-        USART_CMD_TAIL
-    };
-    Serial_SendHexCmd(position_data, sizeof(position_data));
+    // uint8_t position_data[] = {
+    //     USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_POSITION_STATUS,
+    //     (uint8_t)((uint16_t)getTurntableAngle() / 2),    // 0-360映射到0-180
+    //     (uint8_t)((uint16_t)getCompassAngle_Raw() / 2),  //原始角度    // 0-360映射到0-180
+    //     getMOTOR_State(),
+    //     USART_CMD_TAIL
+    // };
+    // Serial_SendHexCmd(position_data, sizeof(position_data));
 
     
     //低电压上报
@@ -187,7 +189,7 @@ void DeviceInfo_CycleSend(void)
         deviceInfo_Report.Charging_Status = POWER_CHARGING_STATUS;
         Serial_Printf("3333333  Charging_Status = %d\r\n", charg_status);
         // 充电中，发送提示信息
-        uint8_t charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
+        uint8_t charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
         Serial_SendHexCmd(charging, sizeof(charging));
     }
     
@@ -197,7 +199,7 @@ void DeviceInfo_CycleSend(void)
         Serial_Printf("4444444 Charging_Status = %d\r\n", charg_status);
         deviceInfo_Report.Charging_Status = POWER_FULL_STATUS;
         // 充电完成，发送提示信息
-        uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
+        uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CHARGE, POWER_CHARGING_STATUS, USART_CMD_TAIL};
         Serial_SendHexCmd(full, sizeof(full));
     }
 
