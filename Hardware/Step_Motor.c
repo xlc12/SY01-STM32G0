@@ -5,7 +5,8 @@
 #include <math.h>
 
 
-
+//1是铜电机，0是钢电机
+#if IS_OLD_MOTOR
 // 反转序列表：A+相→B+相→A-相→B-相
 static const uint8_t reverse_seq[4][4] =
 {
@@ -13,16 +14,43 @@ static const uint8_t reverse_seq[4][4] =
   {0, 0, 1, 0}, // B+相
   {0, 1, 0, 0}, // A-相
   {0, 0, 0, 1}  // B-相
+  
 };
 
 // 正转序列表：与正转相反
 static const uint8_t forward_seq[4][4] =
 {
+  
   {0, 0, 0, 1}, // B-相
   {0, 1, 0, 0}, // A-相
   {0, 0, 1, 0}, // B+相
   {1, 0, 0, 0}  // A+相
 };
+#else
+// 反转序列表：A+相→B+相→A-相→B-相
+static const uint8_t reverse_seq[4][4] =
+{
+  {0, 0, 0, 1}, // B-相
+  {0, 1, 0, 0}, // A-相
+  {0, 0, 1, 0}, // B+相
+  {1, 0, 0, 0}  // A+相
+  
+};
+
+// 正转序列表：与正转相反
+static const uint8_t forward_seq[4][4] =
+{
+  
+  {1, 0, 0, 0}, // A+相
+  {0, 0, 1, 0}, // B+相
+  {0, 1, 0, 0}, // A-相
+  {0, 0, 0, 1}  // B-相
+};
+#endif
+
+
+#define MOTOR_PORTA GPIOA
+
 
 // -------------------------- 全局变量 --------------------------
 static StepMotor_StateTypeDef g_motor_state = STEP_MOTOR_STOP;  // 电机当前状态

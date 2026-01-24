@@ -6,6 +6,9 @@
 //循环日志打印
 #define DEBUG_LOG 1
 
+// 定义是否为旧版电机,1是铜电机，0是钢电机
+#define IS_OLD_MOTOR 0
+
 // #include "QMC5883P.h"
 // #include "qmc_5883p_data.h"
 // #include <string.h>
@@ -27,9 +30,9 @@
 // #include "step_motor.h"
 
 
-#define POWER_ON_TIMER 1000 //开机延时时间--2s
+#define POWER_ON_TIMER 600 //开机延时时间--2s
 
-#define POWER_OFF_TIMER 3000 //关机延时时间--2s
+#define POWER_OFF_TIMER 2000 //关机延时时间--2s
 
 //充电中状态
 #define POWER_CHARGING_STATUS 0x01
@@ -150,20 +153,20 @@ extern HouseRotateStruct house_rotate;
 //低电压警告上报命令
 #define USART_S_CMD_LOW_BATTERY 0x0A1
 //充电提示上报命令
-#define USART_S_CMD_CHARGE 0x0A2
+#define USART_S_CMD_CHARGE 0xA2
 //充满提示上报命令，用USART_S_CMD_CHARGE代替，数据为1表示充电中，数据为2表示拔掉充电器，数据为3表示充满
 // #define USART_S_CMD_FULL 0x0A3
 
 //按键次数上报命令
-#define USART_S_CMD_KEY_COUNT 0x0A4
+#define USART_S_CMD_KEY_COUNT 0xA4
 //磁力计方向上报命令
-#define USART_S_CMD_COMPASS_ANGLE 0x0A5
+#define USART_S_CMD_COMPASS_ANGLE 0xA5
 //心跳上报命令 //返回设备信息：电量、转盘角度、磁力计角度、电机状态
-#define USART_S_CMD_HEARTBEAT 0x0A6
+#define USART_S_CMD_HEARTBEAT 0xA6
 //开始磁力计校准命令，数据00为开始，01为结束
-#define USART_S_CMD_CALIBRATION_ANGLE 0x0A7
+#define USART_S_CMD_CALIBRATION_ANGLE 0xA7
 //位置状态信息上报命令：data[0]转盘角度，data[1]磁力计角度，data[2]电机状态
-#define USART_S_CMD_POSITION_STATUS 0x0A8
+#define USART_S_CMD_POSITION_STATUS 0xA8
 
 
 
