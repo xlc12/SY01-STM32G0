@@ -342,8 +342,8 @@ int main(void)
 
 
 
-    // //待ADC采集稳定
-    // isBatteryVoltageStable(); //有延时操作
+    //待ADC采集稳定
+    isBatteryVoltageStable(); //有延时操作
 
 
 
@@ -414,7 +414,7 @@ int main(void)
   while (1)
   {	
 
-     HAL_Delay(100);
+     HAL_Delay(500);
 
     // /************** 测试用代码 -begin **************/
     // //获取转盘角度

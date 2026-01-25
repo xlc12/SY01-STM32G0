@@ -40,6 +40,8 @@
 #define CHARGING_CANCEL_STATUS 0x02
 //充满状态
 #define POWER_FULL_STATUS 0x03
+//低电量阈值
+#define LOW_BATTERY_THRESHOLD 25
 
 
 

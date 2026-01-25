@@ -157,14 +157,14 @@ void DeviceInfo_CycleSend(void)
     //     USART_CMD_TAIL
     // };
     // Serial_SendHexCmd(position_data, sizeof(position_data));
-
+    Serial_Printf("1111111111 DeviceInfo_CycleSend: Low battery: %d, \r\n", battery_level);
     
     //低电压上报
-    if ( battery_level < 20 && deviceInfo_Report.ChaBattery_Level_Statusrging_Status == 0)
+    if ( battery_level < LOW_BATTERY_THRESHOLD && deviceInfo_Report.ChaBattery_Level_Statusrging_Status == 0)
     {
         deviceInfo_Report.ChaBattery_Level_Statusrging_Status = 1;
         // 电量低，发送提示信息
-        uint8_t low_battery[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, USART_S_CMD_LOW_BATTERY, battery_level, USART_CMD_TAIL};
+        uint8_t low_battery[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_LOW_BATTERY, battery_level, USART_CMD_TAIL};
 
         Serial_SendHexCmd(low_battery, sizeof(low_battery));
         //日志
@@ -191,6 +191,9 @@ void DeviceInfo_CycleSend(void)
         // 充电中，发送提示信息
         uint8_t charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
         Serial_SendHexCmd(charging, sizeof(charging));
+        //延时
+        HAL_Delay(50);
+        Serial_SendHexCmd(charging, sizeof(charging));
     }
     
     //充电完成上报
@@ -199,7 +202,9 @@ void DeviceInfo_CycleSend(void)
         Serial_Printf("4444444 Charging_Status = %d\r\n", charg_status);
         deviceInfo_Report.Charging_Status = POWER_FULL_STATUS;
         // 充电完成，发送提示信息
-        uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CHARGE, POWER_CHARGING_STATUS, USART_CMD_TAIL};
+        uint8_t full[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
+        Serial_SendHexCmd(full, sizeof(full));
+        HAL_Delay(50);
         Serial_SendHexCmd(full, sizeof(full));
     }
 
@@ -209,8 +214,10 @@ void DeviceInfo_CycleSend(void)
         Serial_Printf("5555555 Charging_Status = %d\r\n", charg_status);
         deviceInfo_Report.Charging_Status = CHARGING_CANCEL_STATUS;
         // 取消充电，发送提示信息
-        // uint8_t not_charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD1, CHARGING_CANCEL_STATUS, Charging_Status, USART_CMD_TAIL};
-        // Serial_SendHexCmd(not_charging, sizeof(not_charging));
+        uint8_t not_charging[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_CHARGE, charg_status, USART_CMD_TAIL};
+        Serial_SendHexCmd(not_charging, sizeof(not_charging));
+        HAL_Delay(50);
+        Serial_SendHexCmd(not_charging, sizeof(not_charging));
     }
 
     // Serial_Printf("6666666 Charging_Status = %d\r\n", deviceInfo_Report.Charging_Status);

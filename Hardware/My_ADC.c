@@ -160,14 +160,21 @@ float GetTurntableAngle(void)  //获取当前转盘位置(0-360度)
 	 return ADC_PB1_ConvertToAngle();
 }
 
-uint8_t GetBattery(void)  //获取当前电量位置(直接转换为100%了,0-100%)
+uint8_t GetBattery(void)  //获取当前电压
 {
 	float ADC_BAT;//电池电压
     uint8_t ADC_BAT_Cent;//电池电压(百分比)
 	
 	ADC_BAT = convert_battery_voltage(ADC_BAT_ReadRawValue());
-    ADC_BAT_Cent = (ADC_BAT >= 4.2f) ? 100 : ((ADC_BAT <= 3.0f) ? 0 : (uint8_t)((ADC_BAT - 3.0f) / (4.2f - 3.0f) * 100));//得到电量百分比
-	
-    return ADC_BAT_Cent;    
+  //打印电池电压
+  printf("ADC_BAT: %f \r\n", ADC_BAT);
+  //电池3.6V对应0%，4.2V对应100%
+  ADC_BAT_Cent = (uint8_t)((ADC_BAT - 3.6f) / (4.2f - 3.6f) * 100.0f);
+ 
+    return ADC_BAT_Cent;   
 }
+
+
+
+
 
