@@ -169,6 +169,9 @@ extern HouseRotateStruct house_rotate;
 #define USART_S_CMD_CALIBRATION_ANGLE 0xA7
 //位置状态信息上报命令：data[0]转盘角度，data[1]磁力计角度，data[2]电机状态
 #define USART_S_CMD_POSITION_STATUS 0xA8
+//设备关机事件上报
+#define USART_S_CMD_SHUTDOWN 0xA9
+
 
 
 

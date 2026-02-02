@@ -157,6 +157,8 @@ static void Key_Event_Callback(Key_EventTypeDef event, uint8_t click_cnt)
 
         case KEY_EVENT_LONG_PRESS:
             // 长按关机
+            uint8_t cmdx[5] = {USART_CMD_HEAD1, USART_CMD_HEAD2, USART_S_CMD_SHUTDOWN, 0, USART_CMD_TAIL};
+            Serial_SendHexCmd(cmdx, sizeof(cmdx));
             Serial_Printf("Key Long Press\r\n");
             isPowerOff_flag = 1;
             
